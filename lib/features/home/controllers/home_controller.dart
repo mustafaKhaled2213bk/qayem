@@ -13,6 +13,7 @@ import '../../../data/models/book_model.dart';
 import '../../../data/models/category_model.dart';
 import '../../../data/repositories/book_repository.dart';
 import '../../../data/repositories/category_repository.dart';
+import '../widgets/book_title_dialog.dart';
 import '../widgets/category_picker_sheet.dart';
 
 enum ViewState { loading, success, empty, error }
@@ -102,6 +103,17 @@ class HomeController extends GetxController {
       final picked = await _fileService.pickPdf();
       if (picked == null) return;
 
+      final editedTitle = await Get.dialog<String>(
+        BookTitleDialog(
+          initialTitle: picked.title,
+          fileName: picked.fileName,
+        ),
+        barrierDismissible: false,
+      );
+      if (editedTitle == null || editedTitle.trim().isEmpty) return;
+
+      final bookTitle = editedTitle.trim();
+
       final categories = await _categoryRepo.getAll();
       final selected = await AppBottomSheet.show<CategoryModel>(
         title: 'اختر الصنف',
@@ -116,11 +128,11 @@ class HomeController extends GetxController {
 
       final savedPath = await _fileService.persistPdf(
         picked.sourcePath,
-        title: picked.title,
+        title: bookTitle,
       );
 
       final book = await _bookRepo.create(
-        title: picked.title,
+        title: bookTitle,
         filePath: savedPath,
         categoryId: selected.id,
       );
