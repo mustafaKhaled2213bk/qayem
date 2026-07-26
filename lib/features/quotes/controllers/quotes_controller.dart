@@ -1,13 +1,16 @@
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
 import '../../../app/routes/app_routes.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/services/share_service.dart';
+import '../../../core/utils/quote_image_capture.dart';
 import '../../../core/widgets/app_dialog.dart';
 import '../../../core/widgets/app_snackbar.dart';
 import '../../../data/models/quote_model.dart';
 import '../../../data/repositories/book_repository.dart';
 import '../../../data/repositories/quote_repository.dart';
+import '../widgets/quote_image_preview.dart';
 
 class QuotesController extends GetxController {
   final _quoteRepo = Get.find<QuoteRepository>();
@@ -54,13 +57,23 @@ class QuotesController extends GetxController {
     }
   }
 
-  Future<void> shareQuote(QuoteModel quote) async {
+  void openQuoteImage(QuoteModel quote) {
+    QuoteImagePreview.show(quote);
+  }
+
+  Future<void> shareQuoteImage({
+    required QuoteModel quote,
+    required GlobalKey boundaryKey,
+  }) async {
     try {
-      await _shareService.shareQuote(quote);
+      // Allow one frame so RepaintBoundary paints fully before capture.
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      final bytes = await QuoteImageCapture.capturePng(boundaryKey);
+      await _shareService.shareQuoteImage(quote: quote, imageBytes: bytes);
     } on AppException catch (e) {
       AppSnackbar.error('خطأ', e.message);
     } catch (_) {
-      AppSnackbar.error('خطأ', 'تعذّرت مشاركة الاقتباس.');
+      AppSnackbar.error('خطأ', 'تعذّرت مشاركة صورة الاقتباس.');
     }
   }
 

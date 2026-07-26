@@ -1,5 +1,8 @@
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../errors/app_exception.dart';
@@ -15,6 +18,33 @@ class ShareService {
     await SharePlus.instance.share(
       ShareParams(
         text: text,
+        subject: 'اقتباس من $bookName',
+        title: 'مشاركة اقتباس',
+      ),
+    );
+  }
+
+  Future<void> shareQuoteImage({
+    required QuoteModel quote,
+    required Uint8List imageBytes,
+  }) async {
+    final bookName = quote.bookTitle ?? 'كتاب';
+    final tempDir = await getTemporaryDirectory();
+    final fileName =
+        'qayem_quote_${quote.id}_${DateTime.now().millisecondsSinceEpoch}.png';
+    final file = File(p.join(tempDir.path, fileName));
+    await file.writeAsBytes(imageBytes, flush: true);
+
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [
+          XFile(
+            file.path,
+            mimeType: 'image/png',
+            name: fileName,
+          ),
+        ],
+        text: 'اقتباس من $bookName — قيّم',
         subject: 'اقتباس من $bookName',
         title: 'مشاركة اقتباس',
       ),

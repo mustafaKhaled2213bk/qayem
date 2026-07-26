@@ -51,8 +51,9 @@ class QuotesView extends GetView<QuotesController> {
               final quote = controller.quotes[index];
               return _QuoteCard(
                 quote: quote,
+                onTap: () => controller.openQuoteImage(quote),
                 onDelete: () => controller.deleteQuote(quote),
-                onShare: () => controller.shareQuote(quote),
+                onShare: () => controller.openQuoteImage(quote),
                 onOpen: () => controller.openInBook(quote),
               );
             },
@@ -66,12 +67,14 @@ class QuotesView extends GetView<QuotesController> {
 class _QuoteCard extends StatelessWidget {
   const _QuoteCard({
     required this.quote,
+    required this.onTap,
     required this.onDelete,
     required this.onShare,
     required this.onOpen,
   });
 
   final QuoteModel quote;
+  final VoidCallback onTap;
   final VoidCallback onDelete;
   final VoidCallback onShare;
   final VoidCallback onOpen;
@@ -80,71 +83,83 @@ class _QuoteCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      padding: EdgeInsets.all(14.w),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.cardDark : AppColors.white,
+    return Material(
+      color: isDark ? AppColors.cardDark : AppColors.white,
+      borderRadius: BorderRadius.circular(16.r),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(
-          color: AppColors.secondary.withValues(alpha: 0.25),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.format_quote_rounded,
-                color: isDark ? AppColors.secondary : AppColors.primary,
-              ),
-              SizedBox(width: 8.w),
-              Expanded(
-                child: Text(
-                  quote.bookTitle ?? 'كتاب',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.subtitle,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 10.h),
-          Text(
-            quote.content,
-            style: AppTextStyles.body.copyWith(height: 1.6),
-          ),
-          SizedBox(height: 10.h),
-          Text(
-            'صفحة ${quote.pageNumber} • ${DateFormatter.formatDate(quote.createdAt)}',
-            style: AppTextStyles.caption.copyWith(
-              color: AppColors.neutralGray,
+        child: Container(
+          padding: EdgeInsets.all(14.w),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16.r),
+            border: Border.all(
+              color: AppColors.secondary.withValues(alpha: 0.25),
             ),
           ),
-          SizedBox(height: 12.h),
-          Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: onOpen,
-                  icon: const Icon(Icons.menu_book_rounded, size: 18),
-                  label: const Text('عرض في الكتاب'),
+              Row(
+                children: [
+                  Icon(
+                    Icons.format_quote_rounded,
+                    color: isDark ? AppColors.secondary : AppColors.primary,
+                  ),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: Text(
+                      quote.bookTitle ?? 'كتاب',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.subtitle,
+                    ),
+                  ),
+                  Icon(
+                    Icons.image_outlined,
+                    size: 18.sp,
+                    color: AppColors.neutralGray,
+                  ),
+                ],
+              ),
+              SizedBox(height: 10.h),
+              Text(
+                quote.content,
+                style: AppTextStyles.body.copyWith(height: 1.6),
+              ),
+              SizedBox(height: 10.h),
+              Text(
+                'صفحة ${quote.pageNumber} • ${DateFormatter.formatDate(quote.createdAt)}',
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.neutralGray,
                 ),
               ),
-              SizedBox(width: 8.w),
-              IconButton(
-                tooltip: 'مشاركة',
-                onPressed: onShare,
-                icon: const Icon(Icons.share_outlined),
-              ),
-              IconButton(
-                tooltip: 'حذف',
-                onPressed: onDelete,
-                icon: const Icon(Icons.delete_outline, color: Colors.red),
+              SizedBox(height: 12.h),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: onOpen,
+                      icon: const Icon(Icons.menu_book_rounded, size: 18),
+                      label: const Text('عرض في الكتاب'),
+                    ),
+                  ),
+                  SizedBox(width: 8.w),
+                  IconButton(
+                    tooltip: 'عرض الصورة ومشاركتها',
+                    onPressed: onShare,
+                    icon: const Icon(Icons.share_outlined),
+                  ),
+                  IconButton(
+                    tooltip: 'حذف',
+                    onPressed: onDelete,
+                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
