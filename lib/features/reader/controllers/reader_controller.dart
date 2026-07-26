@@ -8,11 +8,11 @@ import 'package:pdfrx/pdfrx.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/utils/debounce.dart';
+import '../../../core/widgets/app_snackbar.dart';
 import '../../../data/models/book_model.dart';
 import '../../../data/repositories/book_repository.dart';
 import '../../../data/repositories/quote_repository.dart';
 import '../../../data/repositories/reading_session_repository.dart';
-import '../widgets/reading_timer_sheet.dart';
 
 enum ReaderState { loading, ready, missingFile, error }
 
@@ -27,6 +27,7 @@ class ReaderController extends GetxController {
   final errorMessage = ''.obs;
   final book = Rxn<BookModel>();
   final showControls = false.obs;
+  final showTimerPanel = false.obs;
   final currentPage = 1.obs;
   final totalPages = 0.obs;
 
@@ -97,6 +98,8 @@ class ReaderController extends GetxController {
 
       await _bookRepo.markOpened(bookId);
       readerState.value = ReaderState.ready;
+      showTimerPanel.value = true;
+      showControls.value = true;
     } on AppException catch (e) {
       errorMessage.value = e.message;
       readerState.value = ReaderState.error;
@@ -107,6 +110,10 @@ class ReaderController extends GetxController {
   }
 
   void toggleControls() => showControls.value = !showControls.value;
+
+  void toggleTimerPanel() => showTimerPanel.value = !showTimerPanel.value;
+
+  void hideTimerPanel() => showTimerPanel.value = false;
 
   void onDocumentReady(PdfDocument document) {
     totalPages.value = document.pages.length;
@@ -142,13 +149,13 @@ class ReaderController extends GetxController {
           pdfController?.textSelectionDelegate ??
           _textSelection;
       if (selection == null || !selection.hasSelectedText) {
-        Get.snackbar('تنبيه', 'حدّد نصاً أولاً لحفظ الاقتباس.');
+        AppSnackbar.warning('تنبيه', 'حدّد نصاً أولاً لحفظ الاقتباس.');
         return;
       }
 
       final text = (await selection.getSelectedText()).trim();
       if (text.isEmpty) {
-        Get.snackbar('تنبيه', 'النص المحدد فارغ.');
+        AppSnackbar.warning('تنبيه', 'النص المحدد فارغ.');
         return;
       }
 
@@ -162,11 +169,11 @@ class ReaderController extends GetxController {
       await pdfController?.textSelectionDelegate.clearTextSelection();
       hasTextSelection.value = false;
 
-      Get.snackbar('تم', 'تم حفظ الاقتباس بنجاح');
+      AppSnackbar.success('تم', 'تم حفظ الاقتباس بنجاح');
     } on AppException catch (e) {
-      Get.snackbar('خطأ', e.message);
+      AppSnackbar.error('خطأ', e.message);
     } catch (_) {
-      Get.snackbar('خطأ', 'تعذّر حفظ الاقتباس.');
+      AppSnackbar.error('خطأ', 'تعذّر حفظ الاقتباس.');
     } finally {
       isSavingQuote.value = false;
     }
@@ -192,27 +199,27 @@ class ReaderController extends GetxController {
     PdfViewerController controller,
     PdfViewerGeneralTapHandlerDetails details,
   ) {
+    // Leave long-press to pdfrx for text selection (copy / quote).
+    if (details.type == PdfViewerGeneralTapType.longPress) {
+      return false;
+    }
+
     if (hasTextSelection.value) return false;
 
     if (details.type == PdfViewerGeneralTapType.tap) {
+      if (showTimerPanel.value) {
+        hideTimerPanel();
+        return true;
+      }
       toggleControls();
-      return true;
-    }
-    if (details.type == PdfViewerGeneralTapType.longPress) {
-      showTimer();
       return true;
     }
     return false;
   }
 
   void showTimer() {
-    showControls.value = false;
-    Get.bottomSheet(
-      const ReadingTimerSheet(),
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      isDismissible: true,
-    );
+    showTimerPanel.value = true;
+    showControls.value = true;
   }
 
   Future<void> startTimer() async {

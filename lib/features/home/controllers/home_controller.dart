@@ -7,6 +7,7 @@ import '../../../core/services/file_service.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../core/widgets/app_bottom_sheet.dart';
 import '../../../core/widgets/app_dialog.dart';
+import '../../../core/widgets/app_snackbar.dart';
 import '../../../data/models/book_model.dart';
 import '../../../data/models/category_model.dart';
 import '../../../data/repositories/book_repository.dart';
@@ -66,7 +67,7 @@ class HomeController extends GetxController {
     try {
       searchResults.assignAll(await _bookRepo.search(query));
     } on AppException catch (e) {
-      Get.snackbar('خطأ', e.message);
+      AppSnackbar.error('خطأ', e.message);
     }
   }
 
@@ -112,13 +113,13 @@ class HomeController extends GetxController {
         categoryId: selected.id,
       );
 
-      Get.snackbar('تم', 'تمت إضافة الكتاب بنجاح');
+      AppSnackbar.success('تم', 'تمت إضافة الكتاب بنجاح');
       await load();
       openBook(book);
     } on AppException catch (e) {
-      Get.snackbar('خطأ', e.message);
+      AppSnackbar.error('خطأ', e.message);
     } catch (_) {
-      Get.snackbar('خطأ', 'تعذّر إضافة الكتاب.');
+      AppSnackbar.error('خطأ', 'تعذّر إضافة الكتاب.');
     } finally {
       isUploading.value = false;
     }

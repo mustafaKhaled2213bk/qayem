@@ -156,14 +156,22 @@ abstract final class AppTheme {
         ),
         snackBarTheme: SnackBarThemeData(
           behavior: SnackBarBehavior.floating,
-          backgroundColor: AppColors.primary,
+          elevation: 0,
+          backgroundColor: AppColors.white,
           contentTextStyle: const TextStyle(
             fontFamily: AppFonts.cairo,
-            color: AppColors.white,
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: AppColors.primary,
           ),
+          actionTextColor: AppColors.secondary,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(
+              color: AppColors.primary.withValues(alpha: 0.12),
+            ),
           ),
+          insetPadding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
         ),
         progressIndicatorTheme: const ProgressIndicatorThemeData(
           color: AppColors.primary,
@@ -328,14 +336,22 @@ abstract final class AppTheme {
         ),
         snackBarTheme: SnackBarThemeData(
           behavior: SnackBarBehavior.floating,
+          elevation: 0,
           backgroundColor: AppColors.cardDark,
           contentTextStyle: const TextStyle(
             fontFamily: AppFonts.cairo,
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
             color: AppColors.white,
           ),
+          actionTextColor: AppColors.secondary,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(
+              color: AppColors.secondary.withValues(alpha: 0.22),
+            ),
           ),
+          insetPadding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
         ),
         progressIndicatorTheme: const ProgressIndicatorThemeData(
           color: AppColors.secondary,

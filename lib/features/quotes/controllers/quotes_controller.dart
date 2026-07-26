@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/widgets/app_dialog.dart';
+import '../../../core/widgets/app_snackbar.dart';
 import '../../../data/models/quote_model.dart';
 import '../../../data/repositories/book_repository.dart';
 import '../../../data/repositories/quote_repository.dart';
@@ -46,9 +47,9 @@ class QuotesController extends GetxController {
     try {
       await _quoteRepo.delete(quote.id);
       quotes.removeWhere((item) => item.id == quote.id);
-      Get.snackbar('تم', 'تم حذف الاقتباس');
+      AppSnackbar.success('تم', 'تم حذف الاقتباس');
     } on AppException catch (e) {
-      Get.snackbar('خطأ', e.message);
+      AppSnackbar.error('خطأ', e.message);
     }
   }
 
@@ -57,13 +58,16 @@ class QuotesController extends GetxController {
     final text =
         '"${quote.content}"\n\n— من كتاب: $bookName\nصفحة ${quote.pageNumber}\nتطبيق قيّم';
     await Clipboard.setData(ClipboardData(text: text));
-    Get.snackbar('تمت المشاركة', 'تم نسخ الاقتباس. يمكنك لصقه ومشاركته الآن.');
+    AppSnackbar.success(
+      'تمت المشاركة',
+      'تم نسخ الاقتباس. يمكنك لصقه ومشاركته الآن.',
+    );
   }
 
   Future<void> openInBook(QuoteModel quote) async {
     final book = await _bookRepo.getById(quote.bookId);
     if (book == null) {
-      Get.snackbar('خطأ', 'الكتاب غير موجود أو تم حذفه.');
+      AppSnackbar.error('خطأ', 'الكتاب غير موجود أو تم حذفه.');
       return;
     }
 

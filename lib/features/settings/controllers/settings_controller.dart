@@ -5,6 +5,7 @@ import '../../../app/routes/app_routes.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/services/theme_service.dart';
 import '../../../core/widgets/app_dialog.dart';
+import '../../../core/widgets/app_snackbar.dart';
 import '../../../data/repositories/book_repository.dart';
 import '../../home/controllers/home_controller.dart';
 
@@ -52,9 +53,9 @@ class SettingsController extends GetxController {
     try {
       await _bookRepo.clearHistory();
       _refreshHome();
-      Get.snackbar('تم', 'تم مسح سجل القراءة');
+      AppSnackbar.success('تم', 'تم مسح سجل القراءة');
     } on AppException catch (e) {
-      Get.snackbar('خطأ', e.message);
+      AppSnackbar.error('خطأ', e.message);
     }
   }
 
@@ -70,9 +71,9 @@ class SettingsController extends GetxController {
     try {
       await _bookRepo.clearAll();
       _refreshHome();
-      Get.snackbar('تم', 'تم حذف جميع الكتب');
+      AppSnackbar.success('تم', 'تم حذف جميع الكتب');
     } on AppException catch (e) {
-      Get.snackbar('خطأ', e.message);
+      AppSnackbar.error('خطأ', e.message);
     }
   }
 

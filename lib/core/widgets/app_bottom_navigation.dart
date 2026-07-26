@@ -22,8 +22,8 @@ class AppBottomNavigation extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 12.h),
       child: GlassContainer(
         borderRadius: 28.r,
-        thickness: 10,
-        blur: 10,
+        thickness: 5,
+        blur: 5,
         padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
         child: Row(
           children: [

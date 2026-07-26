@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/storage_service.dart';
+import '../../../core/widgets/app_snackbar.dart';
 
 class NotificationsSettingsController extends GetxController {
   final _storage = Get.find<StorageService>();
@@ -55,7 +56,7 @@ class NotificationsSettingsController extends GetxController {
         hour: hour.value,
         minute: minute.value,
       );
-      Get.snackbar('تم', 'تم تحديث وقت التذكير');
+      AppSnackbar.success('تم', 'تم تحديث وقت التذكير');
     }
   }
 
@@ -67,10 +68,10 @@ class NotificationsSettingsController extends GetxController {
         minute: minute.value,
       );
       enabled.value = true;
-      Get.snackbar('تم', 'تم تفعيل التذكير اليومي');
+      AppSnackbar.success('تم', 'تم تفعيل التذكير اليومي');
     } on AppException catch (e) {
       enabled.value = false;
-      Get.snackbar('خطأ', e.message);
+      AppSnackbar.error('خطأ', e.message);
     } finally {
       isSaving.value = false;
     }
@@ -81,9 +82,9 @@ class NotificationsSettingsController extends GetxController {
       isSaving.value = true;
       await _notifications.disableDailyReminder();
       enabled.value = false;
-      Get.snackbar('تم', 'تم إيقاف التذكير اليومي');
+      AppSnackbar.success('تم', 'تم إيقاف التذكير اليومي');
     } on AppException catch (e) {
-      Get.snackbar('خطأ', e.message);
+      AppSnackbar.error('خطأ', e.message);
     } finally {
       isSaving.value = false;
     }

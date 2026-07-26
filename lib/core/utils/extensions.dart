@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme/app_colors.dart';
+import '../widgets/app_snackbar.dart';
 
 extension BuildContextX on BuildContext {
   ThemeData get theme => Theme.of(this);
@@ -11,10 +12,12 @@ extension BuildContextX on BuildContext {
   Color get cardColor =>
       isDark ? AppColors.cardDark : AppColors.cardLight;
 
-  void showSnack(String message) {
-    ScaffoldMessenger.of(this)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+  void showSnack(
+    String message, {
+    String title = 'تنبيه',
+    AppSnackbarType type = AppSnackbarType.info,
+  }) {
+    AppSnackbar.show(title: title, message: message, type: type);
   }
 }
 

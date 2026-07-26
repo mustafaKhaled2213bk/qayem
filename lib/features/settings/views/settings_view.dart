@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../app/theme/app_text_styles.dart';
+import '../../../core/widgets/app_snackbar.dart';
 import '../controllers/settings_controller.dart';
 
 class SettingsView extends GetView<SettingsController> {
@@ -38,7 +39,7 @@ class SettingsView extends GetView<SettingsController> {
             leading: const Icon(Icons.menu_book_outlined),
             title: const Text('تفضيلات القراءة'),
             subtitle: const Text('يتم حفظ آخر صفحة تلقائياً'),
-            onTap: () => Get.snackbar(
+            onTap: () => AppSnackbar.info(
               'معلومة',
               'يتم حفظ تقدم القراءة تلقائياً أثناء التصفح.',
             ),

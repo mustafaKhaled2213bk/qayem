@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/widgets/app_dialog.dart';
+import '../../../core/widgets/app_snackbar.dart';
 import '../../../data/models/category_model.dart';
 import '../../../data/repositories/category_repository.dart';
 import '../../home/controllers/home_controller.dart';
@@ -54,9 +55,9 @@ class CategoriesController extends GetxController {
       );
       await load();
       _refreshHome();
-      Get.snackbar('تم', 'تم إنشاء الصنف بنجاح');
+      AppSnackbar.success('تم', 'تم إنشاء الصنف بنجاح');
     } on AppException catch (e) {
-      Get.snackbar('خطأ', e.message);
+      AppSnackbar.error('خطأ', e.message);
     }
   }
 
@@ -109,7 +110,7 @@ class CategoriesController extends GetxController {
       await load();
       _refreshHome();
     } on AppException catch (e) {
-      Get.snackbar('خطأ', e.message);
+      AppSnackbar.error('خطأ', e.message);
     }
   }
 
@@ -126,9 +127,9 @@ class CategoriesController extends GetxController {
       await _repo.delete(category.id);
       await load();
       _refreshHome();
-      Get.snackbar('تم', 'تم حذف الصنف');
+      AppSnackbar.success('تم', 'تم حذف الصنف');
     } on AppException catch (e) {
-      Get.snackbar('خطأ', e.message);
+      AppSnackbar.error('خطأ', e.message);
     }
   }
 
