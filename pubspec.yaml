@@ -1,0 +1,65 @@
+name: qayem
+description: "قيّم — رفيقك في رحلة القراءة. تطبيق عربي لقراءة وإدارة كتب PDF."
+
+publish_to: 'none' 
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  shared_preferences: ^2.5.3
+  flutter_svg: ^2.1.0
+  flutter_screenutil: ^5.9.3
+  liquid_glass_renderer: ^0.2.0-dev.4
+  flutter_local_notifications: ^21.0.0
+  permission_handler: ^12.0.1
+  open_filex: ^4.7.0
+  get: ^4.7.3
+  sqflite: ^2.4.2+1
+
+  cupertino_icons: ^1.0.8
+  file_picker: ^11.0.2
+  path: ^1.9.1
+  pdfrx: ^2.4.7
+  path_provider: ^2.1.6
+  timezone: ^0.11.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+
+
+flutter:
+
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/mustafa_bakor_AI_CV.pdf
+    - assets/mustafa bakor cv.pdf
+
+  fonts:
+    - family: Cairo
+      fonts:
+        - asset: assets/font/Cairo/static/Cairo-ExtraLight.ttf
+          weight: 200
+        - asset: assets/font/Cairo/static/Cairo-Light.ttf
+          weight: 300
+        - asset: assets/font/Cairo/static/Cairo-Regular.ttf
+          weight: 400
+        - asset: assets/font/Cairo/static/Cairo-Medium.ttf
+          weight: 500
+        - asset: assets/font/Cairo/static/Cairo-SemiBold.ttf
+          weight: 600
+        - asset: assets/font/Cairo/static/Cairo-Bold.ttf
+          weight: 700
+        - asset: assets/font/Cairo/static/Cairo-ExtraBold.ttf
+          weight: 800
+        - asset: assets/font/Cairo/static/Cairo-Black.ttf
+          weight: 900
