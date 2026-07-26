@@ -69,6 +69,7 @@ class HomeView extends GetView<HomeController> {
                               return BookCard(
                                 book: book,
                                 onTap: () => controller.openBook(book),
+                                onShare: () => controller.shareBook(book),
                               );
                             },
                           ),
@@ -113,6 +114,7 @@ class HomeView extends GetView<HomeController> {
                                 book: book,
                                 onTap: () => controller.openBook(book),
                                 onContinue: () => controller.openBook(book),
+                                onShare: () => controller.shareBook(book),
                               ),
                             ),
                           ),

@@ -119,6 +119,19 @@ class ReaderView extends GetView<ReaderController> {
                                 }),
                               ),
                               SizedBox(width: 8.w),
+                              GlassContainer(
+                                borderRadius: 99.r,
+                                padding: EdgeInsets.all(4.w),
+                                child: IconButton(
+                                  onPressed: controller.shareCurrentBook,
+                                  icon: const Icon(
+                                    Icons.share_outlined,
+                                    color: AppColors.secondary,
+                                  ),
+                                  tooltip: 'مشاركة الكتاب',
+                                ),
+                              ),
+                              SizedBox(width: 8.w),
                               const ReaderTimerIndicator(),
                             ],
                           ),

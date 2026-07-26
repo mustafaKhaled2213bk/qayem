@@ -47,6 +47,7 @@ class ReadBooksView extends GetView<ReadBooksController> {
                 BookCard(
                   book: book,
                   onTap: () => controller.openBook(book),
+                  onShare: () => controller.shareBook(book),
                 ),
                 Padding(
                   padding: EdgeInsets.only(top: 4.h, right: 8.w, left: 8.w),

@@ -72,6 +72,7 @@ class CategoryDetailsView extends GetView<CategoryDetailsController> {
                             return BookCard(
                               book: book,
                               onTap: () => controller.openBook(book),
+                              onShare: () => controller.shareBook(book),
                             );
                           },
                         );
@@ -91,6 +92,7 @@ class CategoryDetailsView extends GetView<CategoryDetailsController> {
                           return BookTile(
                             book: book,
                             onTap: () => controller.openBook(book),
+                            onShare: () => controller.shareBook(book),
                           );
                         },
                       );

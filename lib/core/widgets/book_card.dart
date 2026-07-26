@@ -13,11 +13,13 @@ class BookCard extends StatelessWidget {
     required this.book,
     required this.onTap,
     this.onContinue,
+    this.onShare,
   });
 
   final BookModel book;
   final VoidCallback onTap;
   final VoidCallback? onContinue;
+  final VoidCallback? onShare;
 
   @override
   Widget build(BuildContext context) {
@@ -70,19 +72,35 @@ class BookCard extends StatelessWidget {
                         color: AppColors.neutralGray,
                       ),
                     ),
-                    if (onContinue != null) ...[
+                    if (onContinue != null || onShare != null) ...[
                       SizedBox(height: 8.h),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: TextButton(
-                          onPressed: onContinue,
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: const Text('متابعة القراءة'),
-                        ),
+                      Row(
+                        children: [
+                          if (onContinue != null)
+                            TextButton(
+                              onPressed: onContinue,
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              child: const Text('متابعة القراءة'),
+                            ),
+                          const Spacer(),
+                          if (onShare != null)
+                            IconButton(
+                              onPressed: onShare,
+                              tooltip: 'مشاركة',
+                              visualDensity: VisualDensity.compact,
+                              icon: Icon(
+                                Icons.share_outlined,
+                                size: 20.sp,
+                                color: isDark
+                                    ? AppColors.secondary
+                                    : AppColors.primary,
+                              ),
+                            ),
+                        ],
                       ),
                     ],
                   ],
@@ -101,10 +119,12 @@ class BookTile extends StatelessWidget {
     super.key,
     required this.book,
     required this.onTap,
+    this.onShare,
   });
 
   final BookModel book;
   final VoidCallback onTap;
+  final VoidCallback? onShare;
 
   @override
   Widget build(BuildContext context) {
@@ -125,7 +145,34 @@ class BookTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: _Cover(title: book.title, color: categoryColor),
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: _Cover(title: book.title, color: categoryColor),
+                    ),
+                    if (onShare != null)
+                      Positioned(
+                        top: 4.h,
+                        left: 4.w,
+                        child: Material(
+                          color: Colors.black.withValues(alpha: 0.35),
+                          borderRadius: BorderRadius.circular(99.r),
+                          child: InkWell(
+                            onTap: onShare,
+                            borderRadius: BorderRadius.circular(99.r),
+                            child: Padding(
+                              padding: EdgeInsets.all(6.w),
+                              child: Icon(
+                                Icons.share_outlined,
+                                size: 16.sp,
+                                color: AppColors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
               SizedBox(height: 8.h),
               Text(

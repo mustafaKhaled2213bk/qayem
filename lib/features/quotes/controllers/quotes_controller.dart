@@ -1,8 +1,8 @@
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../app/routes/app_routes.dart';
 import '../../../core/errors/app_exception.dart';
+import '../../../core/services/share_service.dart';
 import '../../../core/widgets/app_dialog.dart';
 import '../../../core/widgets/app_snackbar.dart';
 import '../../../data/models/quote_model.dart';
@@ -12,6 +12,7 @@ import '../../../data/repositories/quote_repository.dart';
 class QuotesController extends GetxController {
   final _quoteRepo = Get.find<QuoteRepository>();
   final _bookRepo = Get.find<BookRepository>();
+  final _shareService = Get.find<ShareService>();
 
   final isLoading = true.obs;
   final errorMessage = ''.obs;
@@ -54,14 +55,13 @@ class QuotesController extends GetxController {
   }
 
   Future<void> shareQuote(QuoteModel quote) async {
-    final bookName = quote.bookTitle ?? 'كتاب';
-    final text =
-        '"${quote.content}"\n\n— من كتاب: $bookName\nصفحة ${quote.pageNumber}\nتطبيق قيّم';
-    await Clipboard.setData(ClipboardData(text: text));
-    AppSnackbar.success(
-      'تمت المشاركة',
-      'تم نسخ الاقتباس. يمكنك لصقه ومشاركته الآن.',
-    );
+    try {
+      await _shareService.shareQuote(quote);
+    } on AppException catch (e) {
+      AppSnackbar.error('خطأ', e.message);
+    } catch (_) {
+      AppSnackbar.error('خطأ', 'تعذّرت مشاركة الاقتباس.');
+    }
   }
 
   Future<void> openInBook(QuoteModel quote) async {

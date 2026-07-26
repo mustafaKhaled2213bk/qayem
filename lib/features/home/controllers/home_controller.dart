@@ -4,6 +4,7 @@ import '../../../app/routes/app_routes.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/services/file_service.dart';
+import '../../../core/services/share_service.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../core/widgets/app_bottom_sheet.dart';
 import '../../../core/widgets/app_dialog.dart';
@@ -20,6 +21,7 @@ class HomeController extends GetxController {
   final _bookRepo = Get.find<BookRepository>();
   final _categoryRepo = Get.find<CategoryRepository>();
   final _fileService = Get.find<FileService>();
+  final _shareService = Get.find<ShareService>();
 
   final state = ViewState.loading.obs;
   final errorMessage = ''.obs;
@@ -73,6 +75,16 @@ class HomeController extends GetxController {
 
   void openBook(BookModel book) {
     Get.toNamed(AppRoutes.reader, arguments: book.id)?.then((_) => load());
+  }
+
+  Future<void> shareBook(BookModel book) async {
+    try {
+      await _shareService.shareBook(book);
+    } on AppException catch (e) {
+      AppSnackbar.error('خطأ', e.message);
+    } catch (_) {
+      AppSnackbar.error('خطأ', 'تعذّرت مشاركة الكتاب.');
+    }
   }
 
   void openCategory(CategoryModel category) {

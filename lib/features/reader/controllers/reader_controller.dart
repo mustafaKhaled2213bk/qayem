@@ -7,6 +7,7 @@ import 'package:pdfrx/pdfrx.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/errors/app_exception.dart';
+import '../../../core/services/share_service.dart';
 import '../../../core/utils/debounce.dart';
 import '../../../core/widgets/app_snackbar.dart';
 import '../../../data/models/book_model.dart';
@@ -22,6 +23,7 @@ class ReaderController extends GetxController {
   final _bookRepo = Get.find<BookRepository>();
   final _sessionRepo = Get.find<ReadingSessionRepository>();
   final _quoteRepo = Get.find<QuoteRepository>();
+  final _shareService = Get.find<ShareService>();
 
   final readerState = ReaderState.loading.obs;
   final errorMessage = ''.obs;
@@ -112,6 +114,18 @@ class ReaderController extends GetxController {
   void toggleControls() => showControls.value = !showControls.value;
 
   void toggleTimerPanel() => showTimerPanel.value = !showTimerPanel.value;
+
+  Future<void> shareCurrentBook() async {
+    final currentBook = book.value;
+    if (currentBook == null) return;
+    try {
+      await _shareService.shareBook(currentBook);
+    } on AppException catch (e) {
+      AppSnackbar.error('خطأ', e.message);
+    } catch (_) {
+      AppSnackbar.error('خطأ', 'تعذّرت مشاركة الكتاب.');
+    }
+  }
 
   void hideTimerPanel() => showTimerPanel.value = false;
 

@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'app/app.dart';
 import 'core/services/file_service.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/share_service.dart';
 import 'core/services/storage_service.dart';
 import 'core/services/theme_service.dart';
 import 'data/datasources/local/app_database.dart';
@@ -32,6 +33,7 @@ Future<void> main() async {
   Get.put<AppDatabase>(database, permanent: true);
 
   Get.put<FileService>(FileService(), permanent: true);
+  Get.put<ShareService>(ShareService(), permanent: true);
   Get.put<CategoryRepository>(CategoryRepository(database), permanent: true);
   Get.put<BookRepository>(BookRepository(database), permanent: true);
   Get.put<ReadingSessionRepository>(
