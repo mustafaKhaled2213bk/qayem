@@ -91,6 +91,25 @@ class MoreView extends GetView<MoreController> {
             subtitle: 'قيّم — رفيقك في رحلة القراءة',
             onTap: controller.openAbout,
           ),
+          Align(
+            alignment: Alignment.center,
+            child: Text(
+              'version 1.0.0',
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.neutralGray,
+              ),
+            ),
+          ),
+          SizedBox(height: 5.h),
+          Align(
+            alignment: Alignment.center,
+            child: Text(
+              'By : Mustafa Bakor',
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.neutralGray,
+              ),
+            ),
+          ),
         ],
       ),
     );

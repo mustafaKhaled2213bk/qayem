@@ -119,19 +119,18 @@ class ReaderView extends GetView<ReaderController> {
                                 }),
                               ),
                               SizedBox(width: 8.w),
-                              GlassContainer(
-                                borderRadius: 99.r,
-                                padding: EdgeInsets.all(4.w),
-                                child: IconButton(
-                                  onPressed: controller.shareCurrentBook,
-                                  icon: const Icon(
-                                    Icons.share_outlined,
-                                    color: AppColors.secondary,
-                                  ),
-                                  tooltip: 'مشاركة الكتاب',
-                                ),
-                              ),
-                              SizedBox(width: 8.w),
+                              // GlassContainer(
+                              //   borderRadius: 99.r,
+                              //   child: IconButton(
+                              //     onPressed: controller.shareCurrentBook,
+                              //     icon:  Icon(
+                              //       Icons.share_outlined,
+                              //       color: AppColors.secondary,size: 18.sp,
+                              //     ),
+                              //     tooltip: 'مشاركة الكتاب',
+                              //   ),
+                              // ),
+                              // SizedBox(width: 8.w),
                               const ReaderTimerIndicator(),
                             ],
                           ),
@@ -181,7 +180,10 @@ class ReaderView extends GetView<ReaderController> {
                                   label: Text(
                                     'نسخ',
                                     style: AppTextStyles.button.copyWith(
-                                      color: Theme.of(context).brightness == Brightness.light ? AppColors.backgroundDark : AppColors.white,
+                                      color: Theme.of(context).brightness ==
+                                              Brightness.light
+                                          ? AppColors.backgroundDark
+                                          : AppColors.white,
                                     ),
                                   ),
                                 ),
@@ -207,7 +209,10 @@ class ReaderView extends GetView<ReaderController> {
                                     label: Text(
                                       'اقتباس',
                                       style: AppTextStyles.button.copyWith(
-                                        color: Theme.of(context).brightness == Brightness.light ? AppColors.backgroundDark : AppColors.white,
+                                        color: Theme.of(context).brightness ==
+                                                Brightness.light
+                                            ? AppColors.backgroundDark
+                                            : AppColors.white,
                                       ),
                                     ),
                                   );
@@ -229,19 +234,59 @@ class ReaderView extends GetView<ReaderController> {
                         alignment: Alignment.bottomCenter,
                         child: Padding(
                           padding: EdgeInsets.only(bottom: 20.h),
-                          child: GlassContainer(
-                            borderRadius: 16.r,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 16.w,
-                              vertical: 10.h,
-                            ),
-                            child: Text(
-                              'صفحة ${controller.currentPage.value} من ${controller.totalPages.value}',
-                              style: AppTextStyles.caption.copyWith(
-                                color: AppColors.backgroundDark,
-                                fontWeight: FontWeight.w600,
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: controller.openGoToPageDialog,
+                              borderRadius: BorderRadius.circular(16.r),
+                              child: GlassContainer(
+                                borderRadius: 16.r,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 16.w,
+                                  vertical: 10.h,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.edit_outlined,
+                                      size: 16.sp,
+                                      color: AppColors.secondary,
+                                    ),
+                                    SizedBox(width: 8.w),
+                                    Text(
+                                      'صفحة ${controller.currentPage.value} من ${controller.totalPages.value}',
+                                      style: AppTextStyles.caption.copyWith(
+                                        color: AppColors.backgroundDark,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                  Obx(() {
+                    if (controller.hasTextSelection.value ||
+                        !controller.canGoNext) {
+                      return const SizedBox.shrink();
+                    }
+                    return Positioned(
+                      left: 16.w,
+                      bottom: 88.h,
+                      child: GlassContainer(
+                        borderRadius: 99.r,
+                        padding: EdgeInsets.all(4.w),
+                        child: IconButton(
+                          onPressed: controller.goToNextPage,
+                          tooltip: 'الصفحة التالية',
+                          icon: const Icon(
+                            Icons.arrow_forward,
+                            color: AppColors.secondary,
                           ),
                         ),
                       ),

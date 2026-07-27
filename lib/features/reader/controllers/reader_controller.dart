@@ -14,6 +14,7 @@ import '../../../data/models/book_model.dart';
 import '../../../data/repositories/book_repository.dart';
 import '../../../data/repositories/quote_repository.dart';
 import '../../../data/repositories/reading_session_repository.dart';
+import '../widgets/go_to_page_dialog.dart';
 
 enum ReaderState { loading, ready, missingFile, error }
 
@@ -145,6 +146,43 @@ class ReaderController extends GetxController {
     _progressDebouncer.call(() {
       _persistProgress(pageNumber, totalPages.value);
     });
+  }
+
+  bool get canGoNext =>
+      totalPages.value > 0 && currentPage.value < totalPages.value;
+
+  void goToNextPage() {
+    if (!canGoNext) {
+      AppSnackbar.info('تنبيه', 'أنت في آخر صفحة من الكتاب.');
+      return;
+    }
+    goToPage(currentPage.value + 1);
+  }
+
+  void goToPage(int page) {
+    final max = totalPages.value;
+    if (max <= 0) return;
+
+    final target = page.clamp(1, max);
+    currentPage.value = target;
+    pdfController?.goToPage(pageNumber: target);
+    _progressDebouncer.call(() {
+      _persistProgress(target, max);
+    });
+  }
+
+  Future<void> openGoToPageDialog() async {
+    final max = totalPages.value;
+    if (max <= 0) return;
+
+    final result = await Get.dialog<int>(
+      GoToPageDialog(
+        currentPage: currentPage.value,
+        totalPages: max,
+      ),
+    );
+    if (result == null) return;
+    goToPage(result);
   }
 
   void onTextSelectionChange(PdfTextSelection selection) {
