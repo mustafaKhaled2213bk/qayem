@@ -42,8 +42,7 @@ flutter:
 
   assets:
     - assets/images/
-    - assets/mustafa_bakor_AI_CV.pdf
-    - assets/mustafa bakor cv.pdf
+
 
   fonts:
     - family: Cairo

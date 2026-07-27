@@ -83,7 +83,7 @@ class QuoteImageCard extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Image.asset(
-            'assets/images/logo.png',
+            'assets/images/logo-removebg-preview.png',
             width: 48,
             height: 48,
             fit: BoxFit.contain,
