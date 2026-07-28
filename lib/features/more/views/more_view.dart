@@ -134,7 +134,7 @@ class _MoreTile extends StatelessWidget {
             style: AppTextStyles.caption.copyWith(color: AppColors.neutralGray),
           ),
           trailing: Icon(
-            Icons.chevron_left_rounded,
+            Icons.chevron_right,
             color: AppColors.neutralGray,
             size: 22.sp,
           ),

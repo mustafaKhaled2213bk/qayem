@@ -38,7 +38,7 @@ class SplashView extends GetView<SplashController> {
                   ),
                   padding: EdgeInsets.all(16.w),
                   child: Image.asset(
-                    'assets/images/logo.png',
+                    'assets/images/logo-removebg-preview.png',
                     fit: BoxFit.contain,
                     errorBuilder: (_, _, _) => Icon(
                       Icons.menu_book_rounded,
