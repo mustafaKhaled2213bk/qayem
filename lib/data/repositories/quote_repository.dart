@@ -60,6 +60,48 @@ LIMIT 1
     }
   }
 
+  Future<QuoteModel> update({
+    required int id,
+    required String content,
+    required int pageNumber,
+  }) async {
+    final trimmed = content.trim();
+    if (trimmed.isEmpty) {
+      throw const AppDatabaseException('لا يمكن حفظ اقتباس فارغ.');
+    }
+    if (pageNumber < 1) {
+      throw const AppDatabaseException('رقم الصفحة غير صالح.');
+    }
+
+    try {
+      final db = await _db;
+      final updated = await db.update(
+        DatabaseTables.quotes,
+        {
+          'content': trimmed,
+          'page_number': pageNumber,
+        },
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      if (updated == 0) {
+        throw const AppDatabaseException('الاقتباس غير موجود.');
+      }
+
+      final rows = await db.rawQuery('''
+SELECT q.*, b.title AS book_title
+FROM ${DatabaseTables.quotes} q
+LEFT JOIN ${DatabaseTables.books} b ON b.id = q.book_id
+WHERE q.id = ?
+LIMIT 1
+''', [id]);
+      return QuoteModel.fromMap(rows.first);
+    } catch (e) {
+      if (e is AppDatabaseException) rethrow;
+      throw AppDatabaseException('تعذّر تحديث الاقتباس.', cause: e);
+    }
+  }
+
   Future<void> delete(int id) async {
     try {
       final db = await _db;

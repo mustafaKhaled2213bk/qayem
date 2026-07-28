@@ -44,8 +44,8 @@ class QuoteImageCard extends StatelessWidget {
                 quote.content,
                 textAlign: TextAlign.center,
                 textDirection: TextDirection.rtl,
-                style: const TextStyle(
-                  fontFamily: AppFonts.cairo,
+                style: TextStyle(
+                  fontFamily: AppFonts.active,
                   color: AppColors.secondary,
                   fontSize: 22,
                   fontWeight: FontWeight.w600,
@@ -62,7 +62,7 @@ class QuoteImageCard extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontFamily: AppFonts.cairo,
+              fontFamily: AppFonts.active,
               color: AppColors.secondary.withValues(alpha: 0.9),
               fontSize: 14,
               fontWeight: FontWeight.w500,
@@ -75,7 +75,7 @@ class QuoteImageCard extends StatelessWidget {
             textAlign: TextAlign.center,
             textDirection: TextDirection.rtl,
             style: TextStyle(
-              fontFamily: AppFonts.cairo,
+              fontFamily: AppFonts.active,
               color: AppColors.secondary.withValues(alpha: 0.7),
               fontSize: 12,
               fontWeight: FontWeight.w400,
@@ -94,10 +94,10 @@ class QuoteImageCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
+          Text(
             AppConstants.appName,
             style: TextStyle(
-              fontFamily: AppFonts.cairo,
+              fontFamily: AppFonts.active,
               color: AppColors.secondary,
               fontSize: 13,
               fontWeight: FontWeight.w700,

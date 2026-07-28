@@ -24,11 +24,12 @@ class QayemApp extends StatelessWidget {
       splitScreenMode: true,
       builder: (context, child) {
         return Obx(() {
+          final fontFamily = themeService.fontFamily.value.familyName;
           return GetMaterialApp(
             title: AppConstants.appName,
             debugShowCheckedModeBanner: false,
-            theme: AppTheme.light,
-            darkTheme: AppTheme.dark,
+            theme: AppTheme.light(fontFamily: fontFamily),
+            darkTheme: AppTheme.dark(fontFamily: fontFamily),
             themeMode: themeService.themeMode.value,
             initialBinding: InitialBinding(),
             initialRoute: AppPages.initial,

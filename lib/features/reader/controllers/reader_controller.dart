@@ -11,9 +11,11 @@ import '../../../core/services/share_service.dart';
 import '../../../core/utils/debounce.dart';
 import '../../../core/widgets/app_snackbar.dart';
 import '../../../data/models/book_model.dart';
+import '../../../data/models/quote_model.dart';
 import '../../../data/repositories/book_repository.dart';
 import '../../../data/repositories/quote_repository.dart';
 import '../../../data/repositories/reading_session_repository.dart';
+import '../../quotes/widgets/edit_quote_dialog.dart';
 import '../widgets/go_to_page_dialog.dart';
 
 enum ReaderState { loading, ready, missingFile, error }
@@ -211,10 +213,31 @@ class ReaderController extends GetxController {
         return;
       }
 
-      await _quoteRepo.create(
+      final draft = QuoteModel(
+        id: 0,
         bookId: bookId,
         pageNumber: currentPage.value,
         content: text,
+        createdAt: DateTime.now(),
+        bookTitle: book.value?.title,
+      );
+
+      // Pause the saving lock while the user reviews/edits the quote.
+      isSavingQuote.value = false;
+      final reviewed = await Get.dialog<QuoteEditResult>(
+        EditQuoteDialog(
+          quote: draft,
+          title: 'مراجعة الاقتباس',
+          confirmLabel: 'حفظ الاقتباس',
+        ),
+      );
+      if (reviewed == null) return;
+
+      isSavingQuote.value = true;
+      await _quoteRepo.create(
+        bookId: bookId,
+        pageNumber: reviewed.pageNumber,
+        content: reviewed.content,
       );
 
       await selectionDelegate?.clearTextSelection();

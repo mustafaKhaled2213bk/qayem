@@ -22,21 +22,6 @@ class MoreView extends GetView<MoreController> {
       body: ListView(
         padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 120.h),
         children: [
-          Obx(() {
-            final mode = controller.themeService.themeMode.value;
-            return _MoreTile(
-              icon: Icons.palette_outlined,
-              title: 'المظهر',
-              subtitle: controller.themeService.labelFor(mode),
-              onTap: controller.openThemePicker,
-            );
-          }),
-          _MoreTile(
-            icon: Icons.dark_mode_outlined,
-            title: 'الثيم',
-            subtitle: 'تغيير الوضع الفاتح أو الداكن',
-            onTap: controller.openThemePicker,
-          ),
           _MoreTile(
             icon: Icons.done_all_rounded,
             title: 'الكتب المقروءة',

@@ -29,6 +29,17 @@ class SettingsView extends GetView<SettingsController> {
               onTap: controller.openThemePicker,
             );
           }),
+          Obx(() {
+            return ListTile(
+              leading: const Icon(Icons.font_download_outlined),
+              title: const Text('نوع الخط'),
+              subtitle: Text(
+                controller.themeService
+                    .labelForFont(controller.themeService.fontFamily.value),
+              ),
+              onTap: controller.openFontPicker,
+            );
+          }),
           ListTile(
             leading: const Icon(Icons.notifications_outlined),
             title: const Text('التنبيهات'),

@@ -52,6 +52,7 @@ class QuotesView extends GetView<QuotesController> {
               return _QuoteCard(
                 quote: quote,
                 onTap: () => controller.openQuoteImage(quote),
+                onEdit: () => controller.editQuote(quote),
                 onDelete: () => controller.deleteQuote(quote),
                 onShare: () => controller.openQuoteImage(quote),
                 onOpen: () => controller.openInBook(quote),
@@ -68,6 +69,7 @@ class _QuoteCard extends StatelessWidget {
   const _QuoteCard({
     required this.quote,
     required this.onTap,
+    required this.onEdit,
     required this.onDelete,
     required this.onShare,
     required this.onOpen,
@@ -75,6 +77,7 @@ class _QuoteCard extends StatelessWidget {
 
   final QuoteModel quote;
   final VoidCallback onTap;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onShare;
   final VoidCallback onOpen;
@@ -145,6 +148,11 @@ class _QuoteCard extends StatelessWidget {
                     ),
                   ),
                   SizedBox(width: 8.w),
+                  IconButton(
+                    tooltip: 'تعديل',
+                    onPressed: onEdit,
+                    icon: const Icon(Icons.edit_outlined),
+                  ),
                   IconButton(
                     tooltip: 'عرض الصورة ومشاركتها',
                     onPressed: onShare,

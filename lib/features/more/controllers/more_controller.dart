@@ -2,40 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../app/routes/app_routes.dart';
-import '../../../core/services/theme_service.dart';
 
 class MoreController extends GetxController {
-  final themeService = Get.find<ThemeService>();
-
-  void openThemePicker() {
-    Get.bottomSheet(
-      SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const ListTile(title: Text('المظهر')),
-            ...ThemeMode.values.map((mode) {
-              return Obx(() {
-                final selected = themeService.themeMode.value == mode;
-                return ListTile(
-                  title: Text(themeService.labelFor(mode)),
-                  trailing: selected
-                      ? const Icon(Icons.check_rounded)
-                      : null,
-                  onTap: () {
-                    themeService.setThemeMode(mode);
-                    Get.back();
-                  },
-                );
-              });
-            }),
-          ],
-        ),
-      ),
-      backgroundColor: Get.theme.colorScheme.surface,
-    );
-  }
-
   void openReadBooks() => Get.toNamed(AppRoutes.readBooks);
   void openQuotes() => Get.toNamed(AppRoutes.quotes);
   void openRecommendations() => Get.toNamed(AppRoutes.recommendations);

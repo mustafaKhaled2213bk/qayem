@@ -10,6 +10,7 @@ import '../../../core/widgets/app_snackbar.dart';
 import '../../../data/models/quote_model.dart';
 import '../../../data/repositories/book_repository.dart';
 import '../../../data/repositories/quote_repository.dart';
+import '../widgets/edit_quote_dialog.dart';
 import '../widgets/quote_image_preview.dart';
 
 class QuotesController extends GetxController {
@@ -36,6 +37,31 @@ class QuotesController extends GetxController {
       errorMessage.value = e.message;
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> editQuote(QuoteModel quote) async {
+    final result = await Get.dialog<QuoteEditResult>(
+      EditQuoteDialog(quote: quote),
+    );
+    if (result == null) return;
+
+    try {
+      final updated = await _quoteRepo.update(
+        id: quote.id,
+        content: result.content,
+        pageNumber: result.pageNumber,
+      );
+      final index = quotes.indexWhere((item) => item.id == quote.id);
+      if (index != -1) {
+        quotes[index] = updated;
+        quotes.refresh();
+      }
+      AppSnackbar.success('تم', 'تم تحديث الاقتباس');
+    } on AppException catch (e) {
+      AppSnackbar.error('خطأ', e.message);
+    } catch (_) {
+      AppSnackbar.error('خطأ', 'تعذّر تحديث الاقتباس.');
     }
   }
 

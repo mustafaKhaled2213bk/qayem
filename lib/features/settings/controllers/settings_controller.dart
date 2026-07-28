@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../app/routes/app_routes.dart';
+import '../../../app/theme/app_fonts.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/services/pdf_cover_service.dart';
 import '../../../core/services/theme_service.dart';
@@ -34,6 +35,38 @@ class SettingsController extends GetxController {
               );
             });
           }).toList(),
+        ),
+      ),
+      backgroundColor: Get.theme.colorScheme.surface,
+    );
+  }
+
+  void openFontPicker() {
+    Get.bottomSheet(
+      SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const ListTile(title: Text('نوع الخط')),
+            ...AppFontFamily.values.map((font) {
+              return Obx(() {
+                final selected = themeService.fontFamily.value == font;
+                return ListTile(
+                  title: Text(
+                    themeService.labelForFont(font),
+                    style: TextStyle(fontFamily: font.familyName),
+                  ),
+                  trailing: selected
+                      ? const Icon(Icons.check_rounded)
+                      : null,
+                  onTap: () {
+                    themeService.setFontFamily(font);
+                    Get.back();
+                  },
+                );
+              });
+            }),
+          ],
         ),
       ),
       backgroundColor: Get.theme.colorScheme.surface,

@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'app_colors.dart';
-import 'app_fonts.dart';
 
 abstract final class AppTheme {
-  static ThemeData get light => ThemeData(
+  static ThemeData light({String? fontFamily}) => ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
-        fontFamily: AppFonts.cairo,
+        fontFamily: fontFamily,
         colorScheme: const ColorScheme.light(
           primary: AppColors.primary,
           secondary: AppColors.secondary,
@@ -22,14 +21,14 @@ abstract final class AppTheme {
         scaffoldBackgroundColor: AppColors.backgroundLight,
         cardColor: AppColors.cardLight,
         dividerColor: AppColors.neutralGray.withValues(alpha: 0.25),
-        appBarTheme: const AppBarTheme(
+        appBarTheme: AppBarTheme(
           elevation: 0,
           centerTitle: true,
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.white,
           systemOverlayStyle: SystemUiOverlayStyle.light,
           titleTextStyle: TextStyle(
-            fontFamily: AppFonts.cairo,
+            fontFamily: fontFamily,
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: AppColors.white,
@@ -46,7 +45,7 @@ abstract final class AppTheme {
           labelTextStyle: WidgetStateProperty.resolveWith((states) {
             final selected = states.contains(WidgetState.selected);
             return TextStyle(
-              fontFamily: AppFonts.cairo,
+              fontFamily: fontFamily,
               fontSize: 12,
               fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
               color: selected ? AppColors.primary : AppColors.neutralGray,
@@ -65,8 +64,8 @@ abstract final class AppTheme {
             backgroundColor: AppColors.primary,
             foregroundColor: AppColors.white,
             elevation: 0,
-            textStyle: const TextStyle(
-              fontFamily: AppFonts.cairo,
+            textStyle: TextStyle(
+              fontFamily: fontFamily,
               fontWeight: FontWeight.w600,
             ),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
@@ -79,8 +78,8 @@ abstract final class AppTheme {
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.primary,
             side: const BorderSide(color: AppColors.primary),
-            textStyle: const TextStyle(
-              fontFamily: AppFonts.cairo,
+            textStyle: TextStyle(
+              fontFamily: fontFamily,
               fontWeight: FontWeight.w600,
             ),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
@@ -92,8 +91,8 @@ abstract final class AppTheme {
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
             foregroundColor: AppColors.primary,
-            textStyle: const TextStyle(
-              fontFamily: AppFonts.cairo,
+            textStyle: TextStyle(
+              fontFamily: fontFamily,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -101,12 +100,12 @@ abstract final class AppTheme {
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: AppColors.white,
-          hintStyle: const TextStyle(
-            fontFamily: AppFonts.cairo,
+          hintStyle: TextStyle(
+            fontFamily: fontFamily,
             color: AppColors.neutralGray,
           ),
-          labelStyle: const TextStyle(
-            fontFamily: AppFonts.cairo,
+          labelStyle: TextStyle(
+            fontFamily: fontFamily,
             color: AppColors.neutralGray,
           ),
           border: OutlineInputBorder(
@@ -141,8 +140,8 @@ abstract final class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          titleTextStyle: const TextStyle(
-            fontFamily: AppFonts.cairo,
+          titleTextStyle: TextStyle(
+            fontFamily: fontFamily,
             fontSize: 18,
             fontWeight: FontWeight.w700,
             color: AppColors.black,
@@ -158,8 +157,8 @@ abstract final class AppTheme {
           behavior: SnackBarBehavior.floating,
           elevation: 0,
           backgroundColor: AppColors.white,
-          contentTextStyle: const TextStyle(
-            fontFamily: AppFonts.cairo,
+          contentTextStyle: TextStyle(
+            fontFamily: fontFamily,
             fontSize: 13,
             fontWeight: FontWeight.w500,
             color: AppColors.primary,
@@ -179,13 +178,14 @@ abstract final class AppTheme {
         textTheme: _textTheme(
           AppColors.textPrimaryLight,
           AppColors.textSecondaryLight,
+          fontFamily: fontFamily,
         ),
       );
 
-  static ThemeData get dark => ThemeData(
+  static ThemeData dark({String? fontFamily}) => ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
-        fontFamily: AppFonts.cairo,
+        fontFamily: fontFamily,
         colorScheme: const ColorScheme.dark(
           primary: AppColors.secondary,
           secondary: AppColors.secondary,
@@ -199,14 +199,14 @@ abstract final class AppTheme {
         scaffoldBackgroundColor: AppColors.backgroundDark,
         cardColor: AppColors.cardDark,
         dividerColor: AppColors.neutralGray.withValues(alpha: 0.2),
-        appBarTheme: const AppBarTheme(
+        appBarTheme: AppBarTheme(
           elevation: 0,
           centerTitle: true,
           backgroundColor: AppColors.surfaceDark,
           foregroundColor: AppColors.textPrimaryDark,
           systemOverlayStyle: SystemUiOverlayStyle.light,
           titleTextStyle: TextStyle(
-            fontFamily: AppFonts.cairo,
+            fontFamily: fontFamily,
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimaryDark,
@@ -223,7 +223,7 @@ abstract final class AppTheme {
           labelTextStyle: WidgetStateProperty.resolveWith((states) {
             final selected = states.contains(WidgetState.selected);
             return TextStyle(
-              fontFamily: AppFonts.cairo,
+              fontFamily: fontFamily,
               fontSize: 12,
               fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
               color: selected ? AppColors.secondary : AppColors.neutralGray,
@@ -242,8 +242,8 @@ abstract final class AppTheme {
             backgroundColor: AppColors.secondary,
             foregroundColor: AppColors.primary,
             elevation: 0,
-            textStyle: const TextStyle(
-              fontFamily: AppFonts.cairo,
+            textStyle: TextStyle(
+              fontFamily: fontFamily,
               fontWeight: FontWeight.w600,
             ),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
@@ -256,8 +256,8 @@ abstract final class AppTheme {
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.secondary,
             side: const BorderSide(color: AppColors.secondary),
-            textStyle: const TextStyle(
-              fontFamily: AppFonts.cairo,
+            textStyle: TextStyle(
+              fontFamily: fontFamily,
               fontWeight: FontWeight.w600,
             ),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
@@ -269,8 +269,8 @@ abstract final class AppTheme {
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
             foregroundColor: AppColors.secondary,
-            textStyle: const TextStyle(
-              fontFamily: AppFonts.cairo,
+            textStyle: TextStyle(
+              fontFamily: fontFamily,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -278,12 +278,12 @@ abstract final class AppTheme {
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: AppColors.cardDark,
-          hintStyle: const TextStyle(
-            fontFamily: AppFonts.cairo,
+          hintStyle: TextStyle(
+            fontFamily: fontFamily,
             color: AppColors.neutralGray,
           ),
-          labelStyle: const TextStyle(
-            fontFamily: AppFonts.cairo,
+          labelStyle: TextStyle(
+            fontFamily: fontFamily,
             color: AppColors.neutralGray,
           ),
           border: OutlineInputBorder(
@@ -321,8 +321,8 @@ abstract final class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          titleTextStyle: const TextStyle(
-            fontFamily: AppFonts.cairo,
+          titleTextStyle: TextStyle(
+            fontFamily: fontFamily,
             fontSize: 18,
             fontWeight: FontWeight.w700,
             color: AppColors.white,
@@ -338,8 +338,8 @@ abstract final class AppTheme {
           behavior: SnackBarBehavior.floating,
           elevation: 0,
           backgroundColor: AppColors.cardDark,
-          contentTextStyle: const TextStyle(
-            fontFamily: AppFonts.cairo,
+          contentTextStyle: TextStyle(
+            fontFamily: fontFamily,
             fontSize: 13,
             fontWeight: FontWeight.w500,
             color: AppColors.white,
@@ -359,66 +359,71 @@ abstract final class AppTheme {
         textTheme: _textTheme(
           AppColors.textPrimaryDark,
           AppColors.textSecondaryDark,
+          fontFamily: fontFamily,
         ),
       );
 
-  static TextTheme _textTheme(Color primary, Color secondary) {
+  static TextTheme _textTheme(
+    Color primary,
+    Color secondary, {
+    String? fontFamily,
+  }) {
     return TextTheme(
       displayLarge: TextStyle(
-        fontFamily: AppFonts.cairo,
+        fontFamily: fontFamily,
         color: primary,
         fontWeight: FontWeight.bold,
       ),
       displayMedium: TextStyle(
-        fontFamily: AppFonts.cairo,
+        fontFamily: fontFamily,
         color: primary,
         fontWeight: FontWeight.bold,
       ),
       displaySmall: TextStyle(
-        fontFamily: AppFonts.cairo,
+        fontFamily: fontFamily,
         color: primary,
         fontWeight: FontWeight.w600,
       ),
       headlineLarge: TextStyle(
-        fontFamily: AppFonts.cairo,
+        fontFamily: fontFamily,
         color: primary,
         fontWeight: FontWeight.bold,
       ),
       headlineMedium: TextStyle(
-        fontFamily: AppFonts.cairo,
+        fontFamily: fontFamily,
         color: primary,
         fontWeight: FontWeight.w600,
       ),
       headlineSmall: TextStyle(
-        fontFamily: AppFonts.cairo,
+        fontFamily: fontFamily,
         color: primary,
         fontWeight: FontWeight.w600,
       ),
       titleLarge: TextStyle(
-        fontFamily: AppFonts.cairo,
+        fontFamily: fontFamily,
         color: primary,
         fontWeight: FontWeight.w600,
       ),
       titleMedium: TextStyle(
-        fontFamily: AppFonts.cairo,
+        fontFamily: fontFamily,
         color: primary,
         fontWeight: FontWeight.w500,
       ),
       titleSmall: TextStyle(
-        fontFamily: AppFonts.cairo,
+        fontFamily: fontFamily,
         color: primary,
         fontWeight: FontWeight.w500,
       ),
-      bodyLarge: TextStyle(fontFamily: AppFonts.cairo, color: primary),
-      bodyMedium: TextStyle(fontFamily: AppFonts.cairo, color: primary),
-      bodySmall: TextStyle(fontFamily: AppFonts.cairo, color: secondary),
+      bodyLarge: TextStyle(fontFamily: fontFamily, color: primary),
+      bodyMedium: TextStyle(fontFamily: fontFamily, color: primary),
+      bodySmall: TextStyle(fontFamily: fontFamily, color: secondary),
       labelLarge: TextStyle(
-        fontFamily: AppFonts.cairo,
+        fontFamily: fontFamily,
         color: primary,
         fontWeight: FontWeight.w500,
       ),
-      labelMedium: TextStyle(fontFamily: AppFonts.cairo, color: secondary),
-      labelSmall: TextStyle(fontFamily: AppFonts.cairo, color: secondary),
+      labelMedium: TextStyle(fontFamily: fontFamily, color: secondary),
+      labelSmall: TextStyle(fontFamily: fontFamily, color: secondary),
     );
   }
 }

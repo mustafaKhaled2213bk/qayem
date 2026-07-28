@@ -63,3 +63,13 @@ flutter:
           weight: 800
         - asset: assets/font/Cairo/static/Cairo-Black.ttf
           weight: 900
+    - family: Qomra
+      fonts:
+        - asset: assets/font/Qomra/itfQomraArabic-Light.otf
+          weight: 300
+        - asset: assets/font/Qomra/itfQomraArabic-Regular.otf
+          weight: 400
+        - asset: assets/font/Qomra/itfQomraArabic-Medium.otf
+          weight: 500
+        - asset: assets/font/Qomra/itfQomraArabic-Bold.otf
+          weight: 700

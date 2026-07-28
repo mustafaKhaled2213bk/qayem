@@ -23,6 +23,12 @@ class StorageService {
   Future<void> setThemeMode(String value) =>
       _prefs.setString(StorageKeys.themeMode, value);
 
+  String get fontFamily =>
+      _prefs.getString(StorageKeys.fontFamily) ?? 'qomra';
+
+  Future<void> setFontFamily(String value) =>
+      _prefs.setString(StorageKeys.fontFamily, value);
+
   bool get notificationEnabled =>
       _prefs.getBool(StorageKeys.notificationEnabled) ?? false;
 

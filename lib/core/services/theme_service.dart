@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../app/theme/app_fonts.dart';
 import 'storage_service.dart';
 
 class ThemeService extends GetxService {
@@ -9,6 +10,7 @@ class ThemeService extends GetxService {
   final StorageService _storage;
 
   final Rx<ThemeMode> themeMode = ThemeMode.system.obs;
+  final Rx<AppFontFamily> fontFamily = AppFontFamily.qomra.obs;
 
   @override
   void onInit() {
@@ -16,12 +18,22 @@ class ThemeService extends GetxService {
     final mode = _parse(_storage.themeMode);
     themeMode.value = mode;
     Get.changeThemeMode(mode);
+
+    final font = AppFontFamily.fromStorage(_storage.fontFamily);
+    fontFamily.value = font;
+    AppFonts.active = font.familyName;
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
     themeMode.value = mode;
     Get.changeThemeMode(mode);
     await _storage.setThemeMode(_serialize(mode));
+  }
+
+  Future<void> setFontFamily(AppFontFamily font) async {
+    fontFamily.value = font;
+    AppFonts.active = font.familyName;
+    await _storage.setFontFamily(font.storageKey);
   }
 
   ThemeMode _parse(String value) {
@@ -56,4 +68,6 @@ class ThemeService extends GetxService {
         return 'حسب النظام';
     }
   }
+
+  String labelForFont(AppFontFamily font) => font.arabicName;
 }

@@ -29,7 +29,7 @@ abstract final class AppSnackbar {
         title,
         textAlign: TextAlign.right,
         style: TextStyle(
-          fontFamily: AppFonts.cairo,
+          fontFamily: AppFonts.active,
           fontSize: 15,
           fontWeight: FontWeight.w700,
           color: colors.foreground,
@@ -40,7 +40,7 @@ abstract final class AppSnackbar {
         message,
         textAlign: TextAlign.right,
         style: TextStyle(
-          fontFamily: AppFonts.cairo,
+          fontFamily: AppFonts.active,
           fontSize: 13,
           fontWeight: FontWeight.w400,
           color: colors.foreground.withValues(alpha: 0.9),
