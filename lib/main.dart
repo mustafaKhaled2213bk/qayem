@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'app/app.dart';
 import 'core/services/file_service.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/pdf_cover_service.dart';
 import 'core/services/share_service.dart';
 import 'core/services/storage_service.dart';
 import 'core/services/theme_service.dart';
@@ -32,15 +33,21 @@ Future<void> main() async {
   await database.database;
   Get.put<AppDatabase>(database, permanent: true);
 
-  Get.put<FileService>(FileService(), permanent: true);
+  final fileService = FileService();
+  Get.put<FileService>(fileService, permanent: true);
   Get.put<ShareService>(ShareService(), permanent: true);
   Get.put<CategoryRepository>(CategoryRepository(database), permanent: true);
-  Get.put<BookRepository>(BookRepository(database), permanent: true);
+  final bookRepo = BookRepository(database);
+  Get.put<BookRepository>(bookRepo, permanent: true);
   Get.put<ReadingSessionRepository>(
     ReadingSessionRepository(database),
     permanent: true,
   );
   Get.put<QuoteRepository>(QuoteRepository(database), permanent: true);
+  Get.put<PdfCoverService>(
+    PdfCoverService(bookRepo, fileService),
+    permanent: true,
+  );
 
   final notifications = NotificationService(storage);
   Get.put<NotificationService>(notifications, permanent: true);

@@ -4,6 +4,7 @@ import '../../../app/routes/app_routes.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/services/file_service.dart';
+import '../../../core/services/pdf_cover_service.dart';
 import '../../../core/services/share_service.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../core/widgets/app_bottom_sheet.dart';
@@ -22,6 +23,7 @@ class HomeController extends GetxController {
   final _bookRepo = Get.find<BookRepository>();
   final _categoryRepo = Get.find<CategoryRepository>();
   final _fileService = Get.find<FileService>();
+  final _coverService = Get.find<PdfCoverService>();
   final _shareService = Get.find<ShareService>();
 
   final state = ViewState.loading.obs;
@@ -131,10 +133,16 @@ class HomeController extends GetxController {
         title: bookTitle,
       );
 
+      final coverPath = await _coverService.generateCover(
+        savedPath,
+        preferredName: bookTitle.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_'),
+      );
+
       final book = await _bookRepo.create(
         title: bookTitle,
         filePath: savedPath,
         categoryId: selected.id,
+        coverPath: coverPath,
       );
 
       AppSnackbar.success('تم', 'تمت إضافة الكتاب بنجاح');

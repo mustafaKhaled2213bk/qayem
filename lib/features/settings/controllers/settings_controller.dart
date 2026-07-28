@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../../../app/routes/app_routes.dart';
 import '../../../core/errors/app_exception.dart';
+import '../../../core/services/pdf_cover_service.dart';
 import '../../../core/services/theme_service.dart';
 import '../../../core/widgets/app_dialog.dart';
 import '../../../core/widgets/app_snackbar.dart';
@@ -12,6 +13,7 @@ import '../../home/controllers/home_controller.dart';
 class SettingsController extends GetxController {
   final themeService = Get.find<ThemeService>();
   final _bookRepo = Get.find<BookRepository>();
+  final _coverService = Get.find<PdfCoverService>();
 
   void openThemePicker() {
     Get.bottomSheet(
@@ -70,6 +72,7 @@ class SettingsController extends GetxController {
 
     try {
       await _bookRepo.clearAll();
+      await _coverService.clearAllCovers();
       _refreshHome();
       AppSnackbar.success('تم', 'تم حذف جميع الكتب');
     } on AppException catch (e) {

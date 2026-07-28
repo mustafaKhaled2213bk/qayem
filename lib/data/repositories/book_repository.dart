@@ -117,6 +117,7 @@ LIMIT 1
     required String title,
     required String filePath,
     required int categoryId,
+    String? coverPath,
     int totalPages = 0,
   }) async {
     try {
@@ -127,6 +128,7 @@ LIMIT 1
         title: title.trim(),
         filePath: filePath,
         categoryId: categoryId,
+        coverPath: coverPath,
         currentPage: 1,
         totalPages: totalPages,
         progress: 0,
@@ -139,6 +141,20 @@ LIMIT 1
       return (await getById(id))!;
     } catch (e) {
       throw AppDatabaseException('تعذّر حفظ الكتاب.', cause: e);
+    }
+  }
+
+  Future<void> updateCoverPath(int bookId, String coverPath) async {
+    try {
+      final db = await _db;
+      await db.update(
+        DatabaseTables.books,
+        {'cover_path': coverPath},
+        where: 'id = ?',
+        whereArgs: [bookId],
+      );
+    } catch (e) {
+      throw AppDatabaseException('تعذّر حفظ غلاف الكتاب.', cause: e);
     }
   }
 

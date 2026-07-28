@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 
 import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_text_styles.dart';
 import '../../data/models/book_model.dart';
+import '../services/pdf_cover_service.dart';
 import '../utils/date_formatter.dart';
 import 'app_progress_bar.dart';
 
@@ -24,9 +28,6 @@ class BookCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final categoryColor = book.categoryColor != null
-        ? Color(book.categoryColor!)
-        : AppColors.primary;
 
     return Material(
       color: isDark ? AppColors.cardDark : AppColors.white,
@@ -44,7 +45,11 @@ class BookCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              _Cover(title: book.title, color: categoryColor),
+              BookCover(
+                book: book,
+                width: 72.w,
+                height: 96.h,
+              ),
               SizedBox(width: 12.w),
               Expanded(
                 child: Column(
@@ -129,9 +134,6 @@ class BookTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final categoryColor = book.categoryColor != null
-        ? Color(book.categoryColor!)
-        : AppColors.primary;
 
     return Material(
       color: isDark ? AppColors.cardDark : AppColors.white,
@@ -148,7 +150,7 @@ class BookTile extends StatelessWidget {
                 child: Stack(
                   children: [
                     Positioned.fill(
-                      child: _Cover(title: book.title, color: categoryColor),
+                      child: BookCover(book: book),
                     ),
                     if (onShare != null)
                       Positioned(
@@ -193,19 +195,132 @@ class BookTile extends StatelessWidget {
   }
 }
 
-class _Cover extends StatelessWidget {
-  const _Cover({required this.title, required this.color});
+class BookCover extends StatefulWidget {
+  const BookCover({
+    super.key,
+    required this.book,
+    this.width,
+    this.height,
+    this.borderRadius,
+  });
+
+  final BookModel book;
+  final double? width;
+  final double? height;
+  final double? borderRadius;
+
+  @override
+  State<BookCover> createState() => _BookCoverState();
+}
+
+class _BookCoverState extends State<BookCover> {
+  String? _coverPath;
+  bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _coverPath = widget.book.coverPath;
+    _ensureCover();
+  }
+
+  @override
+  void didUpdateWidget(covariant BookCover oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.book.id != widget.book.id ||
+        oldWidget.book.coverPath != widget.book.coverPath) {
+      _coverPath = widget.book.coverPath;
+      _ensureCover();
+    }
+  }
+
+  Future<void> _ensureCover() async {
+    final existing = _coverPath;
+    if (existing != null &&
+        existing.isNotEmpty &&
+        await File(existing).exists()) {
+      if (mounted) setState(() => _coverPath = existing);
+      return;
+    }
+
+    if (_loading || !Get.isRegistered<PdfCoverService>()) return;
+
+    setState(() => _loading = true);
+    try {
+      final path = await Get.find<PdfCoverService>().ensureCover(widget.book);
+      if (!mounted) return;
+      setState(() {
+        _coverPath = path;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(widget.borderRadius ?? 10.r);
+    final categoryColor = widget.book.categoryColor != null
+        ? Color(widget.book.categoryColor!)
+        : AppColors.primary;
+
+    final hasCover = _coverPath != null &&
+        _coverPath!.isNotEmpty &&
+        File(_coverPath!).existsSync();
+
+    return ClipRRect(
+      borderRadius: radius,
+      child: SizedBox(
+        width: widget.width,
+        height: widget.height,
+        child: hasCover
+            ? Image.file(
+                File(_coverPath!),
+                fit: BoxFit.cover,
+                width: widget.width,
+                height: widget.height,
+                errorBuilder: (_, __, ___) => _FallbackCover(
+                  title: widget.book.title,
+                  color: categoryColor,
+                ),
+              )
+            : Stack(
+                fit: StackFit.expand,
+                children: [
+                  _FallbackCover(
+                    title: widget.book.title,
+                    color: categoryColor,
+                  ),
+                  if (_loading)
+                    const ColoredBox(
+                      color: Color(0x33000000),
+                      child: Center(
+                        child: SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+      ),
+    );
+  }
+}
+
+class _FallbackCover extends StatelessWidget {
+  const _FallbackCover({required this.title, required this.color});
 
   final String title;
   final Color color;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 72.w,
-      height: 96.h,
+    return DecoratedBox(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10.r),
         gradient: LinearGradient(
           begin: Alignment.topRight,
           end: Alignment.bottomLeft,
@@ -216,17 +331,19 @@ class _Cover extends StatelessWidget {
           ],
         ),
       ),
-      padding: EdgeInsets.all(8.w),
-      child: Align(
-        alignment: Alignment.bottomRight,
-        child: Text(
-          title,
-          maxLines: 3,
-          overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.caption.copyWith(
-            color: AppColors.white,
-            fontWeight: FontWeight.w700,
-            fontSize: 10.sp,
+      child: Padding(
+        padding: EdgeInsets.all(8.w),
+        child: Align(
+          alignment: Alignment.bottomRight,
+          child: Text(
+            title,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.white,
+              fontWeight: FontWeight.w700,
+              fontSize: 10.sp,
+            ),
           ),
         ),
       ),
