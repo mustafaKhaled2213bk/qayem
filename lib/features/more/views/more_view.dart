@@ -22,36 +22,28 @@ class MoreView extends GetView<MoreController> {
       body: ListView(
         padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 120.h),
         children: [
-          _MoreTile(
-            icon: Icons.done_all_rounded,
-            title: 'الكتب المقروءة',
-            subtitle: 'عرض الكتب التي أنهيتها',
-            onTap: controller.openReadBooks,
+            _MoreTile(
+            icon: Icons.settings_outlined,
+            title: 'الإعدادات',
+            subtitle: 'التفضيلات وإدارة البيانات',
+            onTap: controller.openSettings,
           ),
-          _MoreTile(
+           _MoreTile(
             icon: Icons.format_quote_rounded,
             title: 'اقتباساتي',
             subtitle: 'النصوص التي حفظتها أثناء القراءة',
             onTap: controller.openQuotes,
           ),
           _MoreTile(
-            icon: Icons.recommend_outlined,
-            title: 'التوصيات',
-            subtitle: 'اقتراحات قرائية مختارة',
-            onTap: controller.openRecommendations,
+            icon: Icons.done_all_rounded,
+            title: 'الكتب المقروءة',
+            subtitle: 'عرض الكتب التي أنهيتها',
+            onTap: controller.openReadBooks,
           ),
-          _MoreTile(
-            icon: Icons.library_books_outlined,
-            title: 'مكتبات إلكترونية معروفة',
-            subtitle: 'مصادر موثوقة للكتب',
-            onTap: controller.openKnownLibraries,
-          ),
-          _MoreTile(
-            icon: Icons.notifications_active_outlined,
-            title: 'إعدادات التنبيهات',
-            subtitle: 'تذكير يومي بالقراءة',
-            onTap: controller.openNotifications,
-          ),
+         
+        
+         
+         
           _MoreTile(
             icon: Icons.timer_outlined,
             title: 'مؤقت القراءة',
@@ -64,12 +56,7 @@ class MoreView extends GetView<MoreController> {
             subtitle: 'ملخص نشاطك القرائي',
             onTap: controller.openStatistics,
           ),
-          _MoreTile(
-            icon: Icons.settings_outlined,
-            title: 'الإعدادات',
-            subtitle: 'التفضيلات وإدارة البيانات',
-            onTap: controller.openSettings,
-          ),
+        
           _MoreTile(
             icon: Icons.info_outline_rounded,
             title: 'حول التطبيق',
