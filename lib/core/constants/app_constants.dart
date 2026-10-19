@@ -12,8 +12,10 @@ abstract final class AppConstants {
   /// Legacy single-reminder id — cancelled on upgrade/init.
   static const int legacyDailyReminderNotificationId = 1001;
 
-  /// Per-book notification ids use [bookReminderNotificationIdBase] + bookId.
+  /// Rolling one-shot ids: base + bookId * 32 + dayOffset.
   static const int bookReminderNotificationIdBase = 200000;
+  static const int reminderScheduleHorizonDays = 14;
+  static const int reminderIdStride = 32;
 
   static const String dailyReminderChannelId = 'daily_reading_reminder';
   static const String dailyReminderChannelName = 'تذكير القراءة';

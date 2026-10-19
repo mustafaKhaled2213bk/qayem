@@ -36,8 +36,10 @@ class HomeController extends GetxController {
   final searchQuery = ''.obs;
   final searchResults = <BookModel>[].obs;
   final isUploading = false.obs;
+  final goalTitle = 'هدف اليوم'.obs;
   final goalMinutes = 0.obs;
   final todayReadingSeconds = 0.obs;
+  final goalFootnote = ''.obs;
   final enabledRemindersCount = 0.obs;
 
   String get greeting => DateFormatter.greetingForNow();
@@ -59,9 +61,10 @@ class HomeController extends GetxController {
     load();
   }
 
-  Future<void> load() async {
+  Future<void> load({bool silent = false}) async {
     try {
-      state.value = ViewState.loading;
+      final showLoading = !silent && state.value != ViewState.success;
+      if (showLoading) state.value = ViewState.loading;
       final books = await _bookRepo.getRecent(
         limit: AppConstants.recentBooksLimit,
       );
@@ -71,9 +74,7 @@ class HomeController extends GetxController {
       featuredCategories.assignAll(
         categories.take(AppConstants.featuredCategoriesLimit).toList(),
       );
-      goalMinutes.value = summary.goalMinutes;
-      todayReadingSeconds.value = summary.todaySeconds;
-      enabledRemindersCount.value = summary.enabledCount;
+      _applyGoals(summary);
       state.value = ViewState.success;
     } on AppException catch (e) {
       errorMessage.value = e.message;
@@ -85,6 +86,30 @@ class HomeController extends GetxController {
   }
 
   void openGoalsSettings() => Get.toNamed(AppRoutes.notificationsSettings);
+
+  void _applyGoals(ReadingGoalsSummary summary) {
+    enabledRemindersCount.value = summary.enabledCount;
+    if (summary.hasDaily) {
+      goalTitle.value = 'هدف اليوم';
+      goalMinutes.value = summary.dailyGoalMinutes;
+      todayReadingSeconds.value = summary.dailyProgressSeconds;
+      goalFootnote.value = summary.hasWeekly
+          ? 'هذا الأسبوع: ${summary.weeklyProgressSeconds ~/ 60} / ${summary.weeklyGoalMinutes} د'
+          : '';
+      return;
+    }
+    if (summary.hasWeekly) {
+      goalTitle.value = 'هدف الأسبوع';
+      goalMinutes.value = summary.weeklyGoalMinutes;
+      todayReadingSeconds.value = summary.weeklyProgressSeconds;
+      goalFootnote.value = '';
+      return;
+    }
+    goalTitle.value = 'أهداف القراءة';
+    goalMinutes.value = 0;
+    todayReadingSeconds.value = 0;
+    goalFootnote.value = '';
+  }
 
   Future<void> onSearch(String query) async {
     searchQuery.value = query;

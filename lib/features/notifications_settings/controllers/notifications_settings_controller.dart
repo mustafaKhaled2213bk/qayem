@@ -20,6 +20,7 @@ class NotificationsSettingsController extends GetxController {
   final errorMessage = ''.obs;
   final reminders = <BookReminderModel>[].obs;
   final booksWithoutReminder = <BookModel>[].obs;
+  final progressSeconds = <int, int>{}.obs;
 
   @override
   void onReady() {
@@ -27,17 +28,23 @@ class NotificationsSettingsController extends GetxController {
     load();
   }
 
-  Future<void> load() async {
+  Future<void> load({bool silent = false}) async {
     try {
-      isLoading.value = true;
+      if (!silent) isLoading.value = true;
       errorMessage.value = '';
       final allReminders = await _reminderService.getAll();
       final allBooks = await _bookRepo.getAll();
       final remindedIds = allReminders.map((r) => r.bookId).toSet();
+      final progress = <int, int>{};
+      for (final reminder in allReminders) {
+        progress[reminder.bookId] =
+            await _reminderService.progressSecondsFor(reminder);
+      }
       reminders.assignAll(allReminders);
       booksWithoutReminder.assignAll(
         allBooks.where((b) => !remindedIds.contains(b.id)).toList(),
       );
+      progressSeconds.assignAll(progress);
     } on AppException catch (e) {
       errorMessage.value = e.message;
     } finally {

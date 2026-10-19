@@ -90,6 +90,13 @@ class ReadingSessionRepository {
     return _sumDuration(start: start, end: end, bookIds: bookIds);
   }
 
+  Future<int> getWeekDurationForBooks(List<int> bookIds) async {
+    if (bookIds.isEmpty) return 0;
+    final start = startOfWeek(DateTime.now());
+    final end = start.add(const Duration(days: 7));
+    return _sumDuration(start: start, end: end, bookIds: bookIds);
+  }
+
   static DateTime startOfWeek(DateTime date) {
     final day = DateTime(date.year, date.month, date.day);
     final daysFromSaturday = (day.weekday + 1) % 7;

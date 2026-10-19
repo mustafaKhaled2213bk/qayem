@@ -95,10 +95,15 @@ class _ReminderTile extends GetView<NotificationsSettingsController> {
               : Icons.alarm_off_rounded,
         ),
         title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
-        subtitle: Text(
-          '${reminder.timeLabel} · هدف $periodLabel: $goalLabel',
-          style: AppTextStyles.caption,
-        ),
+        isThreeLine: true,
+        subtitle: Obx(() {
+          final seconds = controller.progressSeconds[reminder.bookId] ?? 0;
+          final doneMinutes = seconds ~/ 60;
+          return Text(
+            '${reminder.timeLabel} · هدف $periodLabel: $goalLabel\nالتقدم: $doneMinutes / ${reminder.goalMinutes} د',
+            style: AppTextStyles.caption,
+          );
+        }),
         trailing: Obx(() {
           return Switch(
             value: reminder.enabled,

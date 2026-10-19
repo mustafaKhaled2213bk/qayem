@@ -11,10 +11,10 @@ abstract final class ReminderUiSync {
       await Get.find<ReadingReminderService>().refreshBookIds();
     }
     if (Get.isRegistered<HomeController>()) {
-      await Get.find<HomeController>().load();
+      await Get.find<HomeController>().load(silent: true);
     }
     if (Get.isRegistered<NotificationsSettingsController>()) {
-      await Get.find<NotificationsSettingsController>().load();
+      await Get.find<NotificationsSettingsController>().load(silent: true);
     }
   }
 }

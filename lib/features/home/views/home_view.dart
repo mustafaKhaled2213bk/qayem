@@ -102,8 +102,10 @@ class HomeView extends GetView<HomeController> {
                         Padding(
                           padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 8.h),
                           child: DailyGoalCard(
+                            title: controller.goalTitle.value,
                             goalMinutes: controller.goalMinutes.value,
                             todaySeconds: controller.todayReadingSeconds.value,
+                            footnote: controller.goalFootnote.value,
                             enabledCount:
                                 controller.enabledRemindersCount.value,
                             onTap: controller.openGoalsSettings,

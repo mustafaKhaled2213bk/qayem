@@ -8,21 +8,22 @@ import 'notification_service.dart';
 
 class ReadingGoalsSummary {
   const ReadingGoalsSummary({
-    required this.goalMinutes,
-    required this.todaySeconds,
+    required this.dailyGoalMinutes,
+    required this.dailyProgressSeconds,
+    required this.weeklyGoalMinutes,
+    required this.weeklyProgressSeconds,
     required this.enabledCount,
   });
 
-  final int goalMinutes;
-  final int todaySeconds;
+  final int dailyGoalMinutes;
+  final int dailyProgressSeconds;
+  final int weeklyGoalMinutes;
+  final int weeklyProgressSeconds;
   final int enabledCount;
 
-  bool get hasGoals => enabledCount > 0 && goalMinutes > 0;
-
-  double get progress {
-    if (goalMinutes <= 0) return 0;
-    return (todaySeconds / (goalMinutes * 60)).clamp(0.0, 1.0);
-  }
+  bool get hasDaily => dailyGoalMinutes > 0;
+  bool get hasWeekly => weeklyGoalMinutes > 0;
+  bool get hasGoals => enabledCount > 0 && (hasDaily || hasWeekly);
 }
 
 class ReadingReminderService {
@@ -44,16 +45,25 @@ class ReadingReminderService {
   /// Book ids that currently have a reminder row (enabled or not).
   final reminderBookIds = <int>{}.obs;
 
+  /// Enabled reminders only — used by the book-card alarm icon.
+  final enabledReminderBookIds = <int>{}.obs;
+
   bool hasReminderFor(int bookId) => reminderBookIds.contains(bookId);
 
   Future<void> refreshBookIds() async {
     final all = await _reminderRepo.getAll();
-    final ids = all.map((r) => r.bookId).toSet();
     reminderBookIds
       ..clear()
-      ..addAll(ids);
+      ..addAll(all.map((r) => r.bookId));
     reminderBookIds.refresh();
+    enabledReminderBookIds
+      ..clear()
+      ..addAll(all.where((r) => r.enabled).map((r) => r.bookId));
+    enabledReminderBookIds.refresh();
   }
+
+  Future<int> progressSecondsFor(BookReminderModel reminder) =>
+      _progressSeconds(reminder);
 
   Future<BookReminderModel?> getForBook(int bookId) =>
       _reminderRepo.getByBookId(bookId);
@@ -130,41 +140,22 @@ class ReadingReminderService {
     final book = await _bookRepo.getById(reminder.bookId);
     final title = book?.title ?? reminder.bookTitle ?? 'كتابك';
     final progressSeconds = await _progressSeconds(reminder);
-    final goalSeconds = reminder.goalMinutes * 60;
-    final remaining = (goalSeconds - progressSeconds).clamp(0, goalSeconds);
-    final met = progressSeconds >= goalSeconds;
+    final met = progressSeconds >= reminder.goalMinutes * 60;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final startDay = !met
+        ? today
+        : reminder.goalPeriod == ReminderGoalPeriod.weekly
+            ? ReadingSessionRepository.startOfWeek(now).add(const Duration(days: 7))
+            : today.add(const Duration(days: 1));
 
-    if (met) {
-      // Skip remaining fires in this period; resume at the next period.
-      final after = reminder.goalPeriod == ReminderGoalPeriod.weekly
-          ? ReadingSessionRepository.startOfWeek(DateTime.now())
-              .add(const Duration(days: 7))
-          : DateTime(
-              DateTime.now().year,
-              DateTime.now().month,
-              DateTime.now().day,
-            ).add(const Duration(days: 1));
-      await _notifications.scheduleBookReminderAfter(
-        reminder: reminder,
-        bookTitle: title,
-        body: _bodyFor(
-          reminder,
-          remainingSeconds: goalSeconds,
-          met: false,
-        ),
-        after: after,
-      );
-      return;
-    }
-
-    await _notifications.scheduleBookReminder(
-      reminder: reminder,
+    await _notifications.scheduleDailyWindow(
+      bookId: reminder.bookId,
       bookTitle: title,
-      body: _bodyFor(
-        reminder,
-        remainingSeconds: remaining,
-        met: false,
-      ),
+      body: _bodyFor(reminder),
+      hour: reminder.hour,
+      minute: reminder.minute,
+      startDay: startDay,
     );
   }
 
@@ -178,21 +169,36 @@ class ReadingReminderService {
     final enabled = await _reminderRepo.getEnabled();
     if (enabled.isEmpty) {
       return const ReadingGoalsSummary(
-        goalMinutes: 0,
-        todaySeconds: 0,
+        dailyGoalMinutes: 0,
+        dailyProgressSeconds: 0,
+        weeklyGoalMinutes: 0,
+        weeklyProgressSeconds: 0,
         enabledCount: 0,
       );
     }
 
-    final goalMinutes =
-        enabled.fold<int>(0, (sum, r) => sum + r.dailyShareMinutes);
-    final bookIds = enabled.map((r) => r.bookId).toList();
-    final todaySeconds =
-        await _sessionRepo.getDurationForBooksToday(bookIds);
+    final dailyIds = <int>[];
+    final weeklyIds = <int>[];
+    var dailyGoal = 0;
+    var weeklyGoal = 0;
+    for (final reminder in enabled) {
+      if (reminder.goalPeriod == ReminderGoalPeriod.daily) {
+        dailyIds.add(reminder.bookId);
+        dailyGoal += reminder.goalMinutes;
+      } else {
+        weeklyIds.add(reminder.bookId);
+        weeklyGoal += reminder.goalMinutes;
+      }
+    }
+
+    final dailySeconds = await _sessionRepo.getDurationForBooksToday(dailyIds);
+    final weeklySeconds = await _sessionRepo.getWeekDurationForBooks(weeklyIds);
 
     return ReadingGoalsSummary(
-      goalMinutes: goalMinutes,
-      todaySeconds: todaySeconds,
+      dailyGoalMinutes: dailyGoal,
+      dailyProgressSeconds: dailySeconds,
+      weeklyGoalMinutes: weeklyGoal,
+      weeklyProgressSeconds: weeklySeconds,
       enabledCount: enabled.length,
     );
   }
@@ -206,21 +212,11 @@ class ReadingReminderService {
     };
   }
 
-  String _bodyFor(
-    BookReminderModel reminder, {
-    required int remainingSeconds,
-    required bool met,
-  }) {
-    if (met) {
-      return reminder.goalPeriod == ReminderGoalPeriod.weekly
-          ? 'أحسنت! حققت هدفك الأسبوعي. نراك الفترة القادمة.'
-          : 'أحسنت! حققت هدفك اليوم. نراك غداً.';
-    }
-
-    final remainingMinutes = (remainingSeconds / 60).ceil().clamp(1, 24 * 60);
-    final periodLabel =
-        reminder.goalPeriod == ReminderGoalPeriod.weekly ? 'هذا الأسبوع' : 'اليوم';
-    return 'متبقّى $remainingMinutes دقيقة $periodLabel — هدفك ${reminder.goalMinutes} دقيقة.';
+  String _bodyFor(BookReminderModel reminder) {
+    final period = reminder.goalPeriod == ReminderGoalPeriod.weekly
+        ? 'هذا الأسبوع'
+        : 'اليوم';
+    return 'هدفك ${reminder.goalMinutes} دقيقة $period.';
   }
 
 }

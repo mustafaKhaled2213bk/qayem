@@ -8,7 +8,6 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../app/routes/app_routes.dart';
-import '../../data/models/book_reminder_model.dart';
 import '../constants/app_constants.dart';
 import '../errors/app_exception.dart';
 
@@ -32,8 +31,10 @@ class NotificationService {
     return id;
   }
 
-  static int notificationIdForBook(int bookId) =>
-      AppConstants.bookReminderNotificationIdBase + bookId;
+  static int notificationIdForBook(int bookId, [int dayOffset = 0]) =>
+      AppConstants.bookReminderNotificationIdBase +
+      (bookId * AppConstants.reminderIdStride) +
+      dayOffset;
 
   AndroidFlutterLocalNotificationsPlugin? get _android => _plugin
       .resolvePlatformSpecificImplementation<
@@ -162,63 +163,57 @@ class NotificationService {
     return AndroidScheduleMode.inexactAllowWhileIdle;
   }
 
-  Future<void> scheduleBookReminder({
-    required BookReminderModel reminder,
+  /// Schedules one notification per day from [startDay], without date-component
+  /// matching. Matching rewrites any future date back to the next clock time,
+  /// so a "skip until tomorrow / next week" schedule would still fire today.
+  Future<void> scheduleDailyWindow({
+    required int bookId,
     required String bookTitle,
     required String body,
+    required int hour,
+    required int minute,
+    required DateTime startDay,
   }) async {
-    await cancelBookReminder(reminder.bookId);
+    await cancelBookReminder(bookId);
 
-    if (!reminder.enabled) return;
+    final mode = await _resolveScheduleMode();
+    final now = tz.TZDateTime.now(tz.local);
+    final start = DateTime(startDay.year, startDay.month, startDay.day);
 
-    final scheduled = _nextInstanceOfTime(reminder.hour, reminder.minute);
-    await _zonedScheduleSafe(
-      bookId: reminder.bookId,
-      bookTitle: bookTitle,
-      body: body,
-      scheduledDate: scheduled,
-    );
-  }
+    for (var offset = 0; offset < AppConstants.reminderScheduleHorizonDays; offset++) {
+      final day = start.add(Duration(days: offset));
+      final scheduled = tz.TZDateTime(
+        tz.local,
+        day.year,
+        day.month,
+        day.day,
+        hour,
+        minute,
+      );
+      if (!scheduled.isAfter(now)) continue;
 
-  /// Schedules the next fire after [after], still at the reminder clock time.
-  Future<void> scheduleBookReminderAfter({
-    required BookReminderModel reminder,
-    required String bookTitle,
-    required String body,
-    required DateTime after,
-  }) async {
-    await cancelBookReminder(reminder.bookId);
-    if (!reminder.enabled) return;
-
-    var scheduled = tz.TZDateTime(
-      tz.local,
-      after.year,
-      after.month,
-      after.day,
-      reminder.hour,
-      reminder.minute,
-    );
-    if (!scheduled.isAfter(tz.TZDateTime.from(after, tz.local))) {
-      scheduled = scheduled.add(const Duration(days: 1));
+      await _zonedScheduleSafe(
+        id: notificationIdForBook(bookId, offset),
+        bookId: bookId,
+        bookTitle: bookTitle,
+        body: body,
+        scheduledDate: scheduled,
+        mode: mode,
+      );
     }
-
-    await _zonedScheduleSafe(
-      bookId: reminder.bookId,
-      bookTitle: bookTitle,
-      body: body,
-      scheduledDate: scheduled,
-    );
   }
 
   Future<void> _zonedScheduleSafe({
+    required int id,
     required int bookId,
     required String bookTitle,
     required String body,
     required tz.TZDateTime scheduledDate,
+    required AndroidScheduleMode mode,
   }) async {
-    final mode = await _resolveScheduleMode();
     try {
       await _zonedSchedule(
+        id: id,
         bookId: bookId,
         bookTitle: bookTitle,
         body: body,
@@ -226,9 +221,12 @@ class NotificationService {
         mode: mode,
       );
     } on PlatformException catch (e) {
-      if (e.code != 'exact_alarms_not_permitted') rethrow;
-      // Last resort: retry without exact alarms.
+      if (e.code != 'exact_alarms_not_permitted' ||
+          mode == AndroidScheduleMode.inexactAllowWhileIdle) {
+        rethrow;
+      }
       await _zonedSchedule(
+        id: id,
         bookId: bookId,
         bookTitle: bookTitle,
         body: body,
@@ -239,6 +237,7 @@ class NotificationService {
   }
 
   Future<void> _zonedSchedule({
+    required int id,
     required int bookId,
     required String bookTitle,
     required String body,
@@ -246,7 +245,7 @@ class NotificationService {
     required AndroidScheduleMode mode,
   }) {
     return _plugin.zonedSchedule(
-      id: notificationIdForBook(bookId),
+      id: id,
       title: 'حان وقت قراءة «$bookTitle»',
       body: body,
       scheduledDate: scheduledDate,
@@ -263,12 +262,16 @@ class NotificationService {
         iOS: DarwinNotificationDetails(),
       ),
       androidScheduleMode: mode,
-      matchDateTimeComponents: DateTimeComponents.time,
     );
   }
 
   Future<void> cancelBookReminder(int bookId) async {
-    await _plugin.cancel(id: notificationIdForBook(bookId));
+    await _plugin.cancel(
+      id: AppConstants.bookReminderNotificationIdBase + bookId,
+    );
+    for (var offset = 0; offset < AppConstants.reminderScheduleHorizonDays; offset++) {
+      await _plugin.cancel(id: notificationIdForBook(bookId, offset));
+    }
   }
 
   Future<void> cancelAllBookReminders(Iterable<int> bookIds) async {
@@ -277,19 +280,4 @@ class NotificationService {
     }
   }
 
-  tz.TZDateTime _nextInstanceOfTime(int hour, int minute) {
-    final now = tz.TZDateTime.now(tz.local);
-    var scheduled = tz.TZDateTime(
-      tz.local,
-      now.year,
-      now.month,
-      now.day,
-      hour,
-      minute,
-    );
-    if (scheduled.isBefore(now)) {
-      scheduled = scheduled.add(const Duration(days: 1));
-    }
-    return scheduled;
-  }
 }

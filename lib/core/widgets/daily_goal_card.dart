@@ -9,12 +9,16 @@ class DailyGoalCard extends StatelessWidget {
     super.key,
     required this.goalMinutes,
     required this.todaySeconds,
+    this.title = 'هدف اليوم',
+    this.footnote = '',
     this.enabledCount = 0,
     this.onTap,
   });
 
   final int goalMinutes;
   final int todaySeconds;
+  final String title;
+  final String footnote;
   final int enabledCount;
   final VoidCallback? onTap;
 
@@ -77,16 +81,19 @@ class DailyGoalCard extends StatelessWidget {
       );
     }
 
-    final goalSeconds = (goalMinutes * 60).clamp(60, 24 * 60 * 60);
-    final progress = (todaySeconds / goalSeconds).clamp(0.0, 1.0);
+    final goalSeconds = goalMinutes * 60;
+    final progress = goalSeconds <= 0
+        ? 0.0
+        : (todaySeconds / goalSeconds).clamp(0.0, 1.0);
     final todayMinutes = todaySeconds ~/ 60;
     final remainingSeconds = (goalSeconds - todaySeconds).clamp(0, goalSeconds);
-    final done = todaySeconds >= goalSeconds;
+    final done = goalSeconds > 0 && todaySeconds >= goalSeconds;
+    final periodLabel = title.contains('أسبوع') ? 'الأسبوع' : 'اليوم';
 
     final statusText = done
-        ? 'أحسنت! حققت هدف اليوم'
+        ? 'أحسنت! حققت هدف $periodLabel'
         : remainingSeconds >= 60
-            ? 'متبقّى ${remainingSeconds ~/ 60} دقيقة عبر $enabledCount تذكير'
+            ? 'متبقّى ${remainingSeconds ~/ 60} دقيقة'
             : remainingSeconds > 0
                 ? 'متبقّى أقل من دقيقة'
                 : 'ابدأ القراءة لتحقيق هدفك';
@@ -123,7 +130,7 @@ class DailyGoalCard extends StatelessWidget {
                     SizedBox(width: 8.w),
                     Expanded(
                       child: Text(
-                        'هدف اليوم',
+                        title,
                         style: AppTextStyles.subtitle.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -158,6 +165,15 @@ class DailyGoalCard extends StatelessWidget {
                         : AppColors.neutralGray,
                   ),
                 ),
+                if (footnote.isNotEmpty) ...[
+                  SizedBox(height: 4.h),
+                  Text(
+                    footnote,
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.neutralGray,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

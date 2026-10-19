@@ -105,7 +105,7 @@ class BookCard extends StatelessWidget {
                                       : null;
                               // Read .toList so Obx tracks reminderBookIds.
                               final hasReminder = service != null &&
-                                  service.reminderBookIds
+                                  service.enabledReminderBookIds
                                       .toList()
                                       .contains(book.id);
                               return IconButton(
@@ -201,7 +201,7 @@ class BookTile extends StatelessWidget {
                                         ? Get.find<ReadingReminderService>()
                                         : null;
                                 final hasReminder = service != null &&
-                                    service.reminderBookIds
+                                    service.enabledReminderBookIds
                                         .toList()
                                         .contains(book.id);
                                 return Material(
