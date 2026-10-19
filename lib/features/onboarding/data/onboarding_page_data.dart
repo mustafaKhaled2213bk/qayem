@@ -30,7 +30,8 @@ class OnboardingPageData {
     ),
     OnboardingPageData(
       title: 'اجعل القراءة عادة يومية',
-      description: 'استخدم مؤقت القراءة واضبط تذكيرات يومية للقراءة.',
+      description:
+          'استخدم مؤقت القراءة واضبط تذكيراً وهدفاً لكل كتاب يومياً أو أسبوعياً.',
       icon: Icons.timer_rounded,
     ),
   ];

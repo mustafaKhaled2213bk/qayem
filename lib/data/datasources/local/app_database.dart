@@ -36,10 +36,12 @@ class AppDatabase {
     await db.execute(DatabaseTables.createBooks);
     await db.execute(DatabaseTables.createReadingSessions);
     await db.execute(DatabaseTables.createQuotes);
+    await db.execute(DatabaseTables.createBookReminders);
     await db.execute(DatabaseTables.createBooksCategoryIndex);
     await db.execute(DatabaseTables.createBooksLastOpenedIndex);
     await db.execute(DatabaseTables.createQuotesBookIndex);
     await db.execute(DatabaseTables.createQuotesCreatedIndex);
+    await db.execute(DatabaseTables.createBookRemindersBookIndex);
     await _seedDefaultCategories(db);
   }
 
@@ -48,6 +50,10 @@ class AppDatabase {
       await db.execute(DatabaseTables.createQuotes);
       await db.execute(DatabaseTables.createQuotesBookIndex);
       await db.execute(DatabaseTables.createQuotesCreatedIndex);
+    }
+    if (oldVersion < 3) {
+      await db.execute(DatabaseTables.createBookReminders);
+      await db.execute(DatabaseTables.createBookRemindersBookIndex);
     }
   }
 

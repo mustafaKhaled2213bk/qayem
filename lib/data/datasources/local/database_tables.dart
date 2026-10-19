@@ -3,6 +3,7 @@ abstract final class DatabaseTables {
   static const String books = 'books';
   static const String readingSessions = 'reading_sessions';
   static const String quotes = 'quotes';
+  static const String bookReminders = 'book_reminders';
 
   static const String createCategories = '''
 CREATE TABLE $categories (
@@ -72,5 +73,25 @@ CREATE INDEX idx_quotes_book_id ON $quotes (book_id)
 
   static const String createQuotesCreatedIndex = '''
 CREATE INDEX idx_quotes_created_at ON $quotes (created_at)
+''';
+
+  static const String createBookReminders = '''
+CREATE TABLE $bookReminders (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  book_id INTEGER NOT NULL UNIQUE,
+  enabled INTEGER NOT NULL DEFAULT 1,
+  hour INTEGER NOT NULL,
+  minute INTEGER NOT NULL,
+  goal_minutes INTEGER NOT NULL,
+  goal_period TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (book_id) REFERENCES $books (id)
+    ON DELETE CASCADE
+)
+''';
+
+  static const String createBookRemindersBookIndex = '''
+CREATE INDEX idx_book_reminders_book_id ON $bookReminders (book_id)
 ''';
 }

@@ -8,6 +8,7 @@ import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_text_styles.dart';
 import '../../data/models/book_model.dart';
 import '../services/pdf_cover_service.dart';
+import '../services/reading_reminder_service.dart';
 import '../utils/date_formatter.dart';
 import 'app_progress_bar.dart';
 
@@ -18,12 +19,14 @@ class BookCard extends StatelessWidget {
     required this.onTap,
     this.onContinue,
     this.onShare,
+    this.onReminder,
   });
 
   final BookModel book;
   final VoidCallback onTap;
   final VoidCallback? onContinue;
   final VoidCallback? onShare;
+  final VoidCallback? onReminder;
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +80,9 @@ class BookCard extends StatelessWidget {
                         color: AppColors.neutralGray,
                       ),
                     ),
-                    if (onContinue != null || onShare != null) ...[
+                    if (onContinue != null ||
+                        onShare != null ||
+                        onReminder != null) ...[
                       SizedBox(height: 8.h),
                       Row(
                         children: [
@@ -92,6 +97,34 @@ class BookCard extends StatelessWidget {
                               child: const Text('متابعة القراءة'),
                             ),
                           const Spacer(),
+                          if (onReminder != null)
+                            Obx(() {
+                              final service =
+                                  Get.isRegistered<ReadingReminderService>()
+                                      ? Get.find<ReadingReminderService>()
+                                      : null;
+                              // Read .toList so Obx tracks reminderBookIds.
+                              final hasReminder = service != null &&
+                                  service.reminderBookIds
+                                      .toList()
+                                      .contains(book.id);
+                              return IconButton(
+                                onPressed: onReminder,
+                                tooltip: hasReminder
+                                    ? 'تعديل التذكير'
+                                    : 'تذكير القراءة',
+                                visualDensity: VisualDensity.compact,
+                                icon: Icon(
+                                  hasReminder
+                                      ? Icons.alarm_on_rounded
+                                      : Icons.alarm_outlined,
+                                  size: 20.sp,
+                                  color: isDark
+                                      ? AppColors.secondary
+                                      : AppColors.primary,
+                                ),
+                              );
+                            }),
                           if (onShare != null)
                             IconButton(
                               onPressed: onShare,
@@ -125,11 +158,13 @@ class BookTile extends StatelessWidget {
     required this.book,
     required this.onTap,
     this.onShare,
+    this.onReminder,
   });
 
   final BookModel book;
   final VoidCallback onTap;
   final VoidCallback? onShare;
+  final VoidCallback? onReminder;
 
   @override
   Widget build(BuildContext context) {
@@ -152,25 +187,62 @@ class BookTile extends StatelessWidget {
                     Positioned.fill(
                       child: BookCover(book: book),
                     ),
-                    if (onShare != null)
+                    if (onShare != null || onReminder != null)
                       Positioned(
                         top: 4.h,
                         left: 4.w,
-                        child: Material(
-                          color: Colors.black.withValues(alpha: 0.35),
-                          borderRadius: BorderRadius.circular(99.r),
-                          child: InkWell(
-                            onTap: onShare,
-                            borderRadius: BorderRadius.circular(99.r),
-                            child: Padding(
-                              padding: EdgeInsets.all(6.w),
-                              child: Icon(
-                                Icons.share_outlined,
-                                size: 16.sp,
-                                color: AppColors.white,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (onReminder != null)
+                              Obx(() {
+                                final service =
+                                    Get.isRegistered<ReadingReminderService>()
+                                        ? Get.find<ReadingReminderService>()
+                                        : null;
+                                final hasReminder = service != null &&
+                                    service.reminderBookIds
+                                        .toList()
+                                        .contains(book.id);
+                                return Material(
+                                  color: Colors.black.withValues(alpha: 0.35),
+                                  borderRadius: BorderRadius.circular(99.r),
+                                  child: InkWell(
+                                    onTap: onReminder,
+                                    borderRadius: BorderRadius.circular(99.r),
+                                    child: Padding(
+                                      padding: EdgeInsets.all(6.w),
+                                      child: Icon(
+                                        hasReminder
+                                            ? Icons.alarm_on_rounded
+                                            : Icons.alarm_outlined,
+                                        size: 16.sp,
+                                        color: AppColors.white,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }),
+                            if (onReminder != null && onShare != null)
+                              SizedBox(width: 4.w),
+                            if (onShare != null)
+                              Material(
+                                color: Colors.black.withValues(alpha: 0.35),
+                                borderRadius: BorderRadius.circular(99.r),
+                                child: InkWell(
+                                  onTap: onShare,
+                                  borderRadius: BorderRadius.circular(99.r),
+                                  child: Padding(
+                                    padding: EdgeInsets.all(6.w),
+                                    child: Icon(
+                                      Icons.share_outlined,
+                                      size: 16.sp,
+                                      color: AppColors.white,
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
+                          ],
                         ),
                       ),
                   ],
@@ -281,7 +353,7 @@ class _BookCoverState extends State<BookCover> {
                 fit: BoxFit.cover,
                 width: widget.width,
                 height: widget.height,
-                errorBuilder: (_, __, ___) => _FallbackCover(
+                errorBuilder: (_, _, _) => _FallbackCover(
                   title: widget.book.title,
                   color: categoryColor,
                 ),

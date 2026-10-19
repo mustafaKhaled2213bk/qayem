@@ -6,6 +6,7 @@ import '../../../core/services/share_service.dart';
 import '../../../core/widgets/app_snackbar.dart';
 import '../../../data/models/book_model.dart';
 import '../../../data/repositories/book_repository.dart';
+import '../../book_reminder/widgets/book_reminder_sheet.dart';
 
 class ReadBooksController extends GetxController {
   final _repo = Get.find<BookRepository>();
@@ -45,5 +46,9 @@ class ReadBooksController extends GetxController {
     } catch (_) {
       AppSnackbar.error('خطأ', 'تعذّرت مشاركة الكتاب.');
     }
+  }
+
+  Future<void> openReminder(BookModel book) async {
+    await BookReminderSheet.show(book);
   }
 }

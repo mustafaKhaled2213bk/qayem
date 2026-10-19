@@ -1,28 +1,50 @@
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+import '../../app/routes/app_routes.dart';
+import '../../data/models/book_reminder_model.dart';
 import '../constants/app_constants.dart';
 import '../errors/app_exception.dart';
-import 'storage_service.dart';
+
+typedef NotificationTapHandler = void Function(int bookId);
 
 class NotificationService {
-  NotificationService(this._storage);
+  NotificationService();
 
-  final StorageService _storage;
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
   bool _initialized = false;
+  int? _pendingBookId;
+  NotificationTapHandler? onNotificationTap;
+
+  int? get pendingBookId => _pendingBookId;
+
+  int? takePendingBookId() {
+    final id = _pendingBookId;
+    _pendingBookId = null;
+    return id;
+  }
+
+  static int notificationIdForBook(int bookId) =>
+      AppConstants.bookReminderNotificationIdBase + bookId;
+
+  AndroidFlutterLocalNotificationsPlugin? get _android => _plugin
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
 
   Future<void> init() async {
     if (_initialized) return;
 
-    tz.initializeTimeZones(); 
+    tz.initializeTimeZones();
     tz.setLocalLocation(tz.getLocation('Asia/Damascus'));
+
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosInit = DarwinInitializationSettings(
       requestAlertPermission: false,
@@ -30,18 +52,22 @@ class NotificationService {
       requestSoundPermission: false,
     );
 
+    final launch = await _plugin.getNotificationAppLaunchDetails();
+    if (launch?.didNotificationLaunchApp ?? false) {
+      _handlePayload(launch!.notificationResponse?.payload);
+    }
+
     await _plugin.initialize(
       settings: const InitializationSettings(
         android: androidInit,
         iOS: iosInit,
       ),
+      onDidReceiveNotificationResponse: (response) {
+        _handlePayload(response.payload);
+      },
     );
 
-    final android = _plugin
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >();
-    await android?.createNotificationChannel(
+    await _android?.createNotificationChannel(
       const AndroidNotificationChannel(
         AppConstants.dailyReminderChannelId,
         AppConstants.dailyReminderChannelName,
@@ -50,29 +76,41 @@ class NotificationService {
       ),
     );
 
-    _initialized = true;
+    // Cancel legacy global daily reminder.
+    await _plugin.cancel(id: AppConstants.legacyDailyReminderNotificationId);
 
-    if (_storage.notificationEnabled) {
-      await scheduleDailyReminder(
-        hour: _storage.dailyReminderHour,
-        minute: _storage.dailyReminderMinute,
-      );
+    _initialized = true;
+  }
+
+  void _handlePayload(String? payload) {
+    if (payload == null || payload.isEmpty) return;
+    final bookId = int.tryParse(payload);
+    if (bookId == null) return;
+
+    final handler = onNotificationTap;
+    if (handler != null) {
+      handler(bookId);
+      return;
+    }
+
+    if (Get.key.currentState != null) {
+      Get.toNamed(AppRoutes.reader, arguments: bookId);
+    } else {
+      _pendingBookId = bookId;
     }
   }
 
   Future<bool> requestPermission() async {
     if (Platform.isAndroid) {
       final status = await Permission.notification.request();
-      if (!status.isGranted) {
-        return false;
-      }
+      if (!status.isGranted) return false;
+      // Exact alarms are a separate Android 12+ permission.
+      await _ensureExactAlarmPermission();
     } else if (Platform.isIOS) {
       final ios = _plugin
           .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin
-          >();
-      final granted =
-          await ios?.requestPermissions(
+              IOSFlutterLocalNotificationsPlugin>();
+      final granted = await ios?.requestPermissions(
             alert: true,
             badge: true,
             sound: true,
@@ -83,40 +121,136 @@ class NotificationService {
     return true;
   }
 
-  Future<void> enableDailyReminder({
-    required int hour,
-    required int minute,
-  }) async {
+  Future<void> ensurePermission() async {
     final granted = await requestPermission();
     if (!granted) {
       throw const PermissionException(
         'لم يتم منح إذن الإشعارات. فعّل الإذن من إعدادات الجهاز.',
       );
     }
-
-    await _storage.setNotificationEnabled(true);
-    await _storage.setDailyReminderTime(hour, minute);
-    await scheduleDailyReminder(hour: hour, minute: minute);
   }
 
-  Future<void> disableDailyReminder() async {
-    await _storage.setNotificationEnabled(false);
-    await cancelDailyReminder();
+  Future<void> _ensureExactAlarmPermission() async {
+    if (!Platform.isAndroid) return;
+
+    final canExact = await _android?.canScheduleExactNotifications();
+    if (canExact == true) return;
+
+    await _android?.requestExactAlarmsPermission();
+    if (await _android?.canScheduleExactNotifications() == true) return;
+
+    final status = await Permission.scheduleExactAlarm.request();
+    if (status.isGranted) return;
   }
 
-  Future<void> scheduleDailyReminder({
-    required int hour,
-    required int minute,
+  Future<AndroidScheduleMode> _resolveScheduleMode() async {
+    if (!Platform.isAndroid) {
+      return AndroidScheduleMode.exactAllowWhileIdle;
+    }
+
+    final canExact = await _android?.canScheduleExactNotifications();
+    if (canExact == true) {
+      return AndroidScheduleMode.exactAllowWhileIdle;
+    }
+
+    await _ensureExactAlarmPermission();
+    if (await _android?.canScheduleExactNotifications() == true) {
+      return AndroidScheduleMode.exactAllowWhileIdle;
+    }
+
+    // Android 12+ may deny exact alarms; inexact still delivers reminders.
+    return AndroidScheduleMode.inexactAllowWhileIdle;
+  }
+
+  Future<void> scheduleBookReminder({
+    required BookReminderModel reminder,
+    required String bookTitle,
+    required String body,
   }) async {
-    await cancelDailyReminder();
+    await cancelBookReminder(reminder.bookId);
 
-    final scheduled = _nextInstanceOfTime(hour, minute);
+    if (!reminder.enabled) return;
 
-    await _plugin.zonedSchedule(
-      id: AppConstants.dailyReminderNotificationId,
-      title: AppConstants.notificationTitle,
-      body: AppConstants.notificationBody,
+    final scheduled = _nextInstanceOfTime(reminder.hour, reminder.minute);
+    await _zonedScheduleSafe(
+      bookId: reminder.bookId,
+      bookTitle: bookTitle,
+      body: body,
       scheduledDate: scheduled,
+    );
+  }
+
+  /// Schedules the next fire after [after], still at the reminder clock time.
+  Future<void> scheduleBookReminderAfter({
+    required BookReminderModel reminder,
+    required String bookTitle,
+    required String body,
+    required DateTime after,
+  }) async {
+    await cancelBookReminder(reminder.bookId);
+    if (!reminder.enabled) return;
+
+    var scheduled = tz.TZDateTime(
+      tz.local,
+      after.year,
+      after.month,
+      after.day,
+      reminder.hour,
+      reminder.minute,
+    );
+    if (!scheduled.isAfter(tz.TZDateTime.from(after, tz.local))) {
+      scheduled = scheduled.add(const Duration(days: 1));
+    }
+
+    await _zonedScheduleSafe(
+      bookId: reminder.bookId,
+      bookTitle: bookTitle,
+      body: body,
+      scheduledDate: scheduled,
+    );
+  }
+
+  Future<void> _zonedScheduleSafe({
+    required int bookId,
+    required String bookTitle,
+    required String body,
+    required tz.TZDateTime scheduledDate,
+  }) async {
+    final mode = await _resolveScheduleMode();
+    try {
+      await _zonedSchedule(
+        bookId: bookId,
+        bookTitle: bookTitle,
+        body: body,
+        scheduledDate: scheduledDate,
+        mode: mode,
+      );
+    } on PlatformException catch (e) {
+      if (e.code != 'exact_alarms_not_permitted') rethrow;
+      // Last resort: retry without exact alarms.
+      await _zonedSchedule(
+        bookId: bookId,
+        bookTitle: bookTitle,
+        body: body,
+        scheduledDate: scheduledDate,
+        mode: AndroidScheduleMode.inexactAllowWhileIdle,
+      );
+    }
+  }
+
+  Future<void> _zonedSchedule({
+    required int bookId,
+    required String bookTitle,
+    required String body,
+    required tz.TZDateTime scheduledDate,
+    required AndroidScheduleMode mode,
+  }) {
+    return _plugin.zonedSchedule(
+      id: notificationIdForBook(bookId),
+      title: 'حان وقت قراءة «$bookTitle»',
+      body: body,
+      scheduledDate: scheduledDate,
+      payload: bookId.toString(),
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           AppConstants.dailyReminderChannelId,
@@ -128,13 +262,19 @@ class NotificationService {
         ),
         iOS: DarwinNotificationDetails(),
       ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      androidScheduleMode: mode,
       matchDateTimeComponents: DateTimeComponents.time,
     );
   }
 
-  Future<void> cancelDailyReminder() async {
-    await _plugin.cancel(id: AppConstants.dailyReminderNotificationId);
+  Future<void> cancelBookReminder(int bookId) async {
+    await _plugin.cancel(id: notificationIdForBook(bookId));
+  }
+
+  Future<void> cancelAllBookReminders(Iterable<int> bookIds) async {
+    for (final id in bookIds) {
+      await cancelBookReminder(id);
+    }
   }
 
   tz.TZDateTime _nextInstanceOfTime(int hour, int minute) {

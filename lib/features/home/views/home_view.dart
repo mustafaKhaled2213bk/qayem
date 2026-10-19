@@ -7,6 +7,8 @@ import '../../../app/theme/app_text_styles.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/book_card.dart';
 import '../../../core/widgets/category_card.dart';
+import '../../../core/widgets/continue_reading_banner.dart';
+import '../../../core/widgets/daily_goal_card.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/glass_container.dart';
 import '../../../core/widgets/loading_state.dart';
@@ -70,6 +72,8 @@ class HomeView extends GetView<HomeController> {
                                 book: book,
                                 onTap: () => controller.openBook(book),
                                 onShare: () => controller.shareBook(book),
+                                onReminder: () =>
+                                    controller.openReminder(book),
                               );
                             },
                           ),
@@ -95,6 +99,24 @@ class HomeView extends GetView<HomeController> {
                   case ViewState.success:
                     return SliverList(
                       delegate: SliverChildListDelegate([
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 8.h),
+                          child: DailyGoalCard(
+                            goalMinutes: controller.goalMinutes.value,
+                            todaySeconds: controller.todayReadingSeconds.value,
+                            enabledCount:
+                                controller.enabledRemindersCount.value,
+                            onTap: controller.openGoalsSettings,
+                          ),
+                        ),
+                        if (controller.lastOpenedBook != null)
+                          Padding(
+                            padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
+                            child: ContinueReadingBanner(
+                              book: controller.lastOpenedBook!,
+                              onContinue: controller.continueLastBook,
+                            ),
+                          ),
                         const SectionHeader(title: 'آخر الكتب المقروءة'),
                         if (controller.recentBooks.isEmpty)
                           Padding(
@@ -115,6 +137,8 @@ class HomeView extends GetView<HomeController> {
                                 onTap: () => controller.openBook(book),
                                 onContinue: () => controller.openBook(book),
                                 onShare: () => controller.shareBook(book),
+                                onReminder: () =>
+                                    controller.openReminder(book),
                               ),
                             ),
                           ),

@@ -5,6 +5,7 @@ import '../../../app/routes/app_routes.dart';
 import '../../../app/theme/app_fonts.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/services/pdf_cover_service.dart';
+import '../../../core/services/reading_reminder_service.dart';
 import '../../../core/services/theme_service.dart';
 import '../../../core/widgets/app_dialog.dart';
 import '../../../core/widgets/app_snackbar.dart';
@@ -15,6 +16,7 @@ class SettingsController extends GetxController {
   final themeService = Get.find<ThemeService>();
   final _bookRepo = Get.find<BookRepository>();
   final _coverService = Get.find<PdfCoverService>();
+  final _reminderService = Get.find<ReadingReminderService>();
 
   void openThemePicker() {
     Get.bottomSheet(
@@ -87,6 +89,7 @@ class SettingsController extends GetxController {
 
     try {
       await _bookRepo.clearHistory();
+      await _reminderService.syncAll();
       _refreshHome();
       AppSnackbar.success('تم', 'تم مسح سجل القراءة');
     } on AppException catch (e) {
@@ -104,6 +107,10 @@ class SettingsController extends GetxController {
     if (confirmed != true) return;
 
     try {
+      final reminders = await _reminderService.getAll();
+      for (final reminder in reminders) {
+        await _reminderService.deleteReminder(reminder.bookId);
+      }
       await _bookRepo.clearAll();
       await _coverService.clearAllCovers();
       _refreshHome();

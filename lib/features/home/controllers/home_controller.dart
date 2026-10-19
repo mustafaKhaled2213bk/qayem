@@ -5,6 +5,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../core/services/file_service.dart';
 import '../../../core/services/pdf_cover_service.dart';
+import '../../../core/services/reading_reminder_service.dart';
 import '../../../core/services/share_service.dart';
 import '../../../core/utils/date_formatter.dart';
 import '../../../core/widgets/app_bottom_sheet.dart';
@@ -14,6 +15,7 @@ import '../../../data/models/book_model.dart';
 import '../../../data/models/category_model.dart';
 import '../../../data/repositories/book_repository.dart';
 import '../../../data/repositories/category_repository.dart';
+import '../../book_reminder/widgets/book_reminder_sheet.dart';
 import '../widgets/book_title_dialog.dart';
 import '../widgets/category_picker_sheet.dart';
 
@@ -25,6 +27,7 @@ class HomeController extends GetxController {
   final _fileService = Get.find<FileService>();
   final _coverService = Get.find<PdfCoverService>();
   final _shareService = Get.find<ShareService>();
+  final _reminderService = Get.find<ReadingReminderService>();
 
   final state = ViewState.loading.obs;
   final errorMessage = ''.obs;
@@ -33,8 +36,22 @@ class HomeController extends GetxController {
   final searchQuery = ''.obs;
   final searchResults = <BookModel>[].obs;
   final isUploading = false.obs;
+  final goalMinutes = 0.obs;
+  final todayReadingSeconds = 0.obs;
+  final enabledRemindersCount = 0.obs;
 
   String get greeting => DateFormatter.greetingForNow();
+
+  BookModel? get lastOpenedBook {
+    if (recentBooks.isEmpty) return null;
+    return recentBooks.first;
+  }
+
+  void continueLastBook() {
+    final book = lastOpenedBook;
+    if (book == null) return;
+    openBook(book);
+  }
 
   @override
   void onReady() {
@@ -49,10 +66,14 @@ class HomeController extends GetxController {
         limit: AppConstants.recentBooksLimit,
       );
       final categories = await _categoryRepo.getAll();
+      final summary = await _reminderService.goalsSummary();
       recentBooks.assignAll(books);
       featuredCategories.assignAll(
         categories.take(AppConstants.featuredCategoriesLimit).toList(),
       );
+      goalMinutes.value = summary.goalMinutes;
+      todayReadingSeconds.value = summary.todaySeconds;
+      enabledRemindersCount.value = summary.enabledCount;
       state.value = ViewState.success;
     } on AppException catch (e) {
       errorMessage.value = e.message;
@@ -62,6 +83,8 @@ class HomeController extends GetxController {
       state.value = ViewState.error;
     }
   }
+
+  void openGoalsSettings() => Get.toNamed(AppRoutes.notificationsSettings);
 
   Future<void> onSearch(String query) async {
     searchQuery.value = query;
@@ -98,6 +121,10 @@ class HomeController extends GetxController {
   }
 
   void openSettings() => Get.toNamed(AppRoutes.settings);
+
+  Future<void> openReminder(BookModel book) async {
+    await BookReminderSheet.show(book);
+  }
 
   Future<void> addBook() async {
     try {
@@ -147,6 +174,19 @@ class HomeController extends GetxController {
 
       AppSnackbar.success('تم', 'تمت إضافة الكتاب بنجاح');
       await load();
+
+      final wantsReminder = await AppDialog.confirm(
+        title: 'تذكير بالقراءة؟',
+        message:
+            'هل تريد ضبط تذكير وهدف قراءة لـ «${book.title}» الآن؟',
+        confirmLabel: 'إضافة تذكير',
+        cancelLabel: 'لاحقاً',
+      );
+      if (wantsReminder == true) {
+        await BookReminderSheet.show(book);
+        await load();
+      }
+
       openBook(book);
     } on AppException catch (e) {
       AppSnackbar.error('خطأ', e.message);

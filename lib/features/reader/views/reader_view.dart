@@ -74,33 +74,33 @@ class ReaderView extends GetView<ReaderController> {
                       },
                     ),
                   ),
-                  SafeArea(
-                    child: Padding(
-                      padding: EdgeInsets.fromLTRB(12.w, 8.h, 12.w, 0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Row(
-                            children: [
-                              GlassContainer(
-                                borderRadius: 99.r,
-                                padding: EdgeInsets.all(4.w),
-                                child: IconButton(
-                                  onPressed: Get.back,
-                                  icon: const Icon(
-                                    Icons.arrow_back,
-                                    color: AppColors.backgroundDark,
+                  Obx(() {
+                    if (!controller.showControls.value) {
+                      return const SizedBox.shrink();
+                    }
+                    return SafeArea(
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(12.w, 8.h, 12.w, 0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              children: [
+                                GlassContainer(
+                                  borderRadius: 99.r,
+                                  padding: EdgeInsets.all(4.w),
+                                  child: IconButton(
+                                    onPressed: Get.back,
+                                    icon: const Icon(
+                                      Icons.arrow_back,
+                                      color: AppColors.backgroundDark,
+                                    ),
+                                    tooltip: 'رجوع',
                                   ),
-                                  tooltip: 'رجوع',
                                 ),
-                              ),
-                              SizedBox(width: 8.w),
-                              Expanded(
-                                child: Obx(() {
-                                  if (!controller.showControls.value) {
-                                    return const SizedBox.shrink();
-                                  }
-                                  return GlassContainer(
+                                SizedBox(width: 8.w),
+                                Expanded(
+                                  child: GlassContainer(
                                     borderRadius: 16.r,
                                     padding: EdgeInsets.symmetric(
                                       horizontal: 12.w,
@@ -115,38 +115,22 @@ class ReaderView extends GetView<ReaderController> {
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
-                                  );
-                                }),
+                                  ),
+                                ),
+                                SizedBox(width: 8.w),
+                                const ReaderTimerIndicator(),
+                              ],
+                            ),
+                            if (controller.showTimerPanel.value)
+                              Padding(
+                                padding: EdgeInsets.only(top: 10.h),
+                                child: const ReaderTimerPanel(),
                               ),
-                              SizedBox(width: 8.w),
-                              // GlassContainer(
-                              //   borderRadius: 99.r,
-                              //   child: IconButton(
-                              //     onPressed: controller.shareCurrentBook,
-                              //     icon:  Icon(
-                              //       Icons.share_outlined,
-                              //       color: AppColors.secondary,size: 18.sp,
-                              //     ),
-                              //     tooltip: 'مشاركة الكتاب',
-                              //   ),
-                              // ),
-                              // SizedBox(width: 8.w),
-                              const ReaderTimerIndicator(),
-                            ],
-                          ),
-                          Obx(() {
-                            if (!controller.showTimerPanel.value) {
-                              return const SizedBox.shrink();
-                            }
-                            return Padding(
-                              padding: EdgeInsets.only(top: 10.h),
-                              child: const ReaderTimerPanel(),
-                            );
-                          }),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  }),
                   Obx(() {
                     if (!controller.hasTextSelection.value) {
                       return const SizedBox.shrink();
@@ -271,7 +255,8 @@ class ReaderView extends GetView<ReaderController> {
                     );
                   }),
                   Obx(() {
-                    if (controller.hasTextSelection.value ||
+                    if (!controller.showControls.value ||
+                        controller.hasTextSelection.value ||
                         !controller.canGoNext) {
                       return const SizedBox.shrink();
                     }

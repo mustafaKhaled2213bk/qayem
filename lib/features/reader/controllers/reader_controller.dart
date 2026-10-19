@@ -7,6 +7,7 @@ import 'package:pdfrx/pdfrx.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/errors/app_exception.dart';
+import '../../../core/services/reading_reminder_service.dart';
 import '../../../core/services/share_service.dart';
 import '../../../core/utils/debounce.dart';
 import '../../../core/widgets/app_snackbar.dart';
@@ -27,6 +28,7 @@ class ReaderController extends GetxController {
   final _sessionRepo = Get.find<ReadingSessionRepository>();
   final _quoteRepo = Get.find<QuoteRepository>();
   final _shareService = Get.find<ShareService>();
+  final _reminderService = Get.find<ReadingReminderService>();
 
   final readerState = ReaderState.loading.obs;
   final errorMessage = ''.obs;
@@ -282,11 +284,9 @@ class ReaderController extends GetxController {
     if (hasTextSelection.value) return false;
 
     if (details.type == PdfViewerGeneralTapType.tap) {
-      if (showTimerPanel.value) {
-        hideTimerPanel();
-        return true;
-      }
+      final willHide = showControls.value;
       toggleControls();
+      if (willHide) hideTimerPanel();
       return true;
     }
     return false;
@@ -343,6 +343,7 @@ class ReaderController extends GetxController {
       _sessionId = null;
     }
     await _bookRepo.addReadingTime(bookId, seconds);
+    await _reminderService.syncAfterReading(bookId);
     final refreshed = await _bookRepo.getById(bookId);
     if (refreshed != null) book.value = refreshed;
   }

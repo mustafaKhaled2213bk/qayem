@@ -29,20 +29,4 @@ class StorageService {
   Future<void> setFontFamily(String value) =>
       _prefs.setString(StorageKeys.fontFamily, value);
 
-  bool get notificationEnabled =>
-      _prefs.getBool(StorageKeys.notificationEnabled) ?? false;
-
-  Future<void> setNotificationEnabled(bool value) =>
-      _prefs.setBool(StorageKeys.notificationEnabled, value);
-
-  int get dailyReminderHour =>
-      _prefs.getInt(StorageKeys.dailyReminderHour) ?? 20;
-
-  int get dailyReminderMinute =>
-      _prefs.getInt(StorageKeys.dailyReminderMinute) ?? 0;
-
-  Future<void> setDailyReminderTime(int hour, int minute) async {
-    await _prefs.setInt(StorageKeys.dailyReminderHour, hour);
-    await _prefs.setInt(StorageKeys.dailyReminderMinute, minute);
-  }
 }

@@ -8,6 +8,7 @@ import '../../../data/models/book_model.dart';
 import '../../../data/models/category_model.dart';
 import '../../../data/repositories/book_repository.dart';
 import '../../../data/repositories/category_repository.dart';
+import '../../book_reminder/widgets/book_reminder_sheet.dart';
 
 enum CategoryViewMode { grid, list }
 
@@ -71,5 +72,9 @@ class CategoryDetailsController extends GetxController {
     } catch (_) {
       AppSnackbar.error('خطأ', 'تعذّرت مشاركة الكتاب.');
     }
+  }
+
+  Future<void> openReminder(BookModel book) async {
+    await BookReminderSheet.show(book);
   }
 }

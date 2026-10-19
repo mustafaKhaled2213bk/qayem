@@ -48,6 +48,7 @@ class ReadBooksView extends GetView<ReadBooksController> {
                   book: book,
                   onTap: () => controller.openBook(book),
                   onShare: () => controller.shareBook(book),
+                  onReminder: () => controller.openReminder(book),
                 ),
                 Padding(
                   padding: EdgeInsets.only(top: 4.h, right: 8.w, left: 8.w),

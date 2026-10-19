@@ -73,6 +73,8 @@ class CategoryDetailsView extends GetView<CategoryDetailsController> {
                               book: book,
                               onTap: () => controller.openBook(book),
                               onShare: () => controller.shareBook(book),
+                              onReminder: () =>
+                                  controller.openReminder(book),
                             );
                           },
                         );
@@ -93,6 +95,8 @@ class CategoryDetailsView extends GetView<CategoryDetailsController> {
                             book: book,
                             onTap: () => controller.openBook(book),
                             onShare: () => controller.shareBook(book),
+                            onReminder: () =>
+                                controller.openReminder(book),
                           );
                         },
                       );

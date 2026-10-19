@@ -18,7 +18,7 @@ class MoreController extends GetxController {
       AlertDialog(
         title: const Text('حول التطبيق'),
         content: const Text(
-          'قيّم\nرفيقك في رحلة القراءة\n\nتطبيق عربي لإدارة وقراءة كتب PDF محلياً مع تتبع التقدم ومؤقت القراءة والتذكيرات اليومية.',
+          'قيّم\nرفيقك في رحلة القراءة\n\nتطبيق عربي لإدارة وقراءة كتب PDF محلياً مع تتبع التقدم ومؤقت القراءة وتذكيرات وأهداف لكل كتاب.',
         ),
         actions: [
           TextButton(

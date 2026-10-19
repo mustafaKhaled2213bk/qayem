@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../app/theme/app_text_styles.dart';
-import '../../../core/widgets/app_snackbar.dart';
 import '../controllers/settings_controller.dart';
 
 class SettingsView extends GetView<SettingsController> {
@@ -42,18 +41,9 @@ class SettingsView extends GetView<SettingsController> {
           }),
           ListTile(
             leading: const Icon(Icons.notifications_outlined),
-            title: const Text('التنبيهات'),
-            subtitle: const Text('التذكير اليومي بالقراءة'),
+            title: const Text('تذكيرات القراءة'),
+            subtitle: const Text('وقت وهدف لكل كتاب'),
             onTap: controller.openNotifications,
-          ),
-          ListTile(
-            leading: const Icon(Icons.menu_book_outlined),
-            title: const Text('تفضيلات القراءة'),
-            subtitle: const Text('يتم حفظ آخر صفحة تلقائياً'),
-            onTap: () => AppSnackbar.info(
-              'معلومة',
-              'يتم حفظ تقدم القراءة تلقائياً أثناء التصفح.',
-            ),
           ),
           SizedBox(height: 16.h),
           Text('البيانات', style: AppTextStyles.subtitle),

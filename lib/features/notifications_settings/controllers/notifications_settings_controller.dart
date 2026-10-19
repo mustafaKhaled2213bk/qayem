@@ -1,92 +1,126 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../app/routes/app_routes.dart';
 import '../../../core/errors/app_exception.dart';
-import '../../../core/services/notification_service.dart';
-import '../../../core/services/storage_service.dart';
+import '../../../core/services/reading_reminder_service.dart';
 import '../../../core/widgets/app_snackbar.dart';
+import '../../../data/models/book_model.dart';
+import '../../../data/models/book_reminder_model.dart';
+import '../../../data/repositories/book_repository.dart';
+import '../../book_reminder/widgets/book_reminder_sheet.dart';
+import '../../home/controllers/home_controller.dart';
 
 class NotificationsSettingsController extends GetxController {
-  final _storage = Get.find<StorageService>();
-  final _notifications = Get.find<NotificationService>();
+  final _reminderService = Get.find<ReadingReminderService>();
+  final _bookRepo = Get.find<BookRepository>();
 
-  final enabled = false.obs;
-  final hour = 20.obs;
-  final minute = 0.obs;
+  final isLoading = true.obs;
   final isSaving = false.obs;
-
-  String get timeLabel {
-    final h = hour.value.toString().padLeft(2, '0');
-    final m = minute.value.toString().padLeft(2, '0');
-    return '$h:$m';
-  }
+  final errorMessage = ''.obs;
+  final reminders = <BookReminderModel>[].obs;
+  final booksWithoutReminder = <BookModel>[].obs;
 
   @override
-  void onInit() {
-    super.onInit();
-    enabled.value = _storage.notificationEnabled;
-    hour.value = _storage.dailyReminderHour;
-    minute.value = _storage.dailyReminderMinute;
+  void onReady() {
+    super.onReady();
+    load();
   }
 
-  Future<void> toggle(bool value) async {
-    if (value) {
-      await _enable();
-    } else {
-      await _disable();
+  Future<void> load() async {
+    try {
+      isLoading.value = true;
+      errorMessage.value = '';
+      final allReminders = await _reminderService.getAll();
+      final allBooks = await _bookRepo.getAll();
+      final remindedIds = allReminders.map((r) => r.bookId).toSet();
+      reminders.assignAll(allReminders);
+      booksWithoutReminder.assignAll(
+        allBooks.where((b) => !remindedIds.contains(b.id)).toList(),
+      );
+    } on AppException catch (e) {
+      errorMessage.value = e.message;
+    } finally {
+      isLoading.value = false;
     }
   }
 
-  Future<void> pickTime(BuildContext context) async {
-    final selected = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: hour.value, minute: minute.value),
-      helpText: 'اختر وقت التذكير',
-      cancelText: 'إلغاء',
-      confirmText: 'حفظ',
+  Future<void> toggle(BookReminderModel reminder, bool enabled) async {
+    try {
+      isSaving.value = true;
+      await _reminderService.setEnabled(reminder.bookId, enabled);
+      await load();
+      _refreshHome();
+      AppSnackbar.success(
+        'تم',
+        enabled ? 'تم تفعيل التذكير' : 'تم إيقاف التذكير',
+      );
+    } on AppException catch (e) {
+      AppSnackbar.error('خطأ', e.message);
+      await load();
+    } finally {
+      isSaving.value = false;
+    }
+  }
+
+  Future<void> editReminder(BookReminderModel reminder) async {
+    final book = await _bookRepo.getById(reminder.bookId);
+    if (book == null) {
+      AppSnackbar.error('خطأ', 'الكتاب غير موجود.');
+      return;
+    }
+    // BookReminderSheet.show refreshes dependent UI when changed.
+    await BookReminderSheet.show(book);
+  }
+
+  Future<void> addReminderForBook(BookModel book) async {
+    await BookReminderSheet.show(book);
+  }
+
+  Future<void> pickBookToAdd() async {
+    if (booksWithoutReminder.isEmpty) {
+      AppSnackbar.info('تنبيه', 'كل كتبك لديها تذكير بالفعل، أو لا توجد كتب.');
+      return;
+    }
+
+    final selected = await Get.bottomSheet<BookModel>(
+      SafeArea(
+        child: SizedBox(
+          height: Get.height * 0.55,
+          child: Column(
+            children: [
+              const ListTile(title: Text('اختر كتاباً')),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: booksWithoutReminder.length,
+                  itemBuilder: (context, index) {
+                    final book = booksWithoutReminder[index];
+                    return ListTile(
+                      title: Text(book.title),
+                      subtitle: Text(book.categoryName ?? ''),
+                      onTap: () => Get.back(result: book),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      backgroundColor: Get.theme.colorScheme.surface,
+      isScrollControlled: true,
     );
     if (selected == null) return;
-
-    hour.value = selected.hour;
-    minute.value = selected.minute;
-    await _storage.setDailyReminderTime(hour.value, minute.value);
-
-    if (enabled.value) {
-      await _notifications.scheduleDailyReminder(
-        hour: hour.value,
-        minute: minute.value,
-      );
-      AppSnackbar.success('تم', 'تم تحديث وقت التذكير');
-    }
+    await addReminderForBook(selected);
   }
 
-  Future<void> _enable() async {
-    try {
-      isSaving.value = true;
-      await _notifications.enableDailyReminder(
-        hour: hour.value,
-        minute: minute.value,
-      );
-      enabled.value = true;
-      AppSnackbar.success('تم', 'تم تفعيل التذكير اليومي');
-    } on AppException catch (e) {
-      enabled.value = false;
-      AppSnackbar.error('خطأ', e.message);
-    } finally {
-      isSaving.value = false;
-    }
+  void openBook(BookReminderModel reminder) {
+    Get.toNamed(AppRoutes.reader, arguments: reminder.bookId);
   }
 
-  Future<void> _disable() async {
-    try {
-      isSaving.value = true;
-      await _notifications.disableDailyReminder();
-      enabled.value = false;
-      AppSnackbar.success('تم', 'تم إيقاف التذكير اليومي');
-    } on AppException catch (e) {
-      AppSnackbar.error('خطأ', e.message);
-    } finally {
-      isSaving.value = false;
+  void _refreshHome() {
+    if (Get.isRegistered<HomeController>()) {
+      Get.find<HomeController>().load();
     }
   }
 }
