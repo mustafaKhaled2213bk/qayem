@@ -15,6 +15,7 @@ import '../../../data/models/book_model.dart';
 import '../../../data/models/category_model.dart';
 import '../../../data/repositories/book_repository.dart';
 import '../../../data/repositories/category_repository.dart';
+import '../../../data/repositories/reading_session_repository.dart';
 import '../../book_reminder/widgets/book_reminder_sheet.dart';
 import '../widgets/book_title_dialog.dart';
 import '../widgets/category_picker_sheet.dart';
@@ -28,6 +29,7 @@ class HomeController extends GetxController {
   final _coverService = Get.find<PdfCoverService>();
   final _shareService = Get.find<ShareService>();
   final _reminderService = Get.find<ReadingReminderService>();
+  final _sessionRepo = Get.find<ReadingSessionRepository>();
 
   final state = ViewState.loading.obs;
   final errorMessage = ''.obs;
@@ -41,6 +43,8 @@ class HomeController extends GetxController {
   final todayReadingSeconds = 0.obs;
   final goalFootnote = ''.obs;
   final enabledRemindersCount = 0.obs;
+  final streakDays = 0.obs;
+  final streakReadToday = false.obs;
 
   String get greeting => DateFormatter.greetingForNow();
 
@@ -70,11 +74,14 @@ class HomeController extends GetxController {
       );
       final categories = await _categoryRepo.getAll();
       final summary = await _reminderService.goalsSummary();
+      final streak = await _sessionRepo.currentStreak();
       recentBooks.assignAll(books);
       featuredCategories.assignAll(
         categories.take(AppConstants.featuredCategoriesLimit).toList(),
       );
       _applyGoals(summary);
+      streakDays.value = streak.days;
+      streakReadToday.value = streak.readToday;
       state.value = ViewState.success;
     } on AppException catch (e) {
       errorMessage.value = e.message;
@@ -158,10 +165,7 @@ class HomeController extends GetxController {
       if (picked == null) return;
 
       final editedTitle = await Get.dialog<String>(
-        BookTitleDialog(
-          initialTitle: picked.title,
-          fileName: picked.fileName,
-        ),
+        BookTitleDialog(initialTitle: picked.title, fileName: picked.fileName),
         barrierDismissible: false,
       );
       if (editedTitle == null || editedTitle.trim().isEmpty) return;
@@ -202,8 +206,7 @@ class HomeController extends GetxController {
 
       final wantsReminder = await AppDialog.confirm(
         title: 'تذكير بالقراءة؟',
-        message:
-            'هل تريد ضبط تذكير وهدف قراءة لـ «${book.title}» الآن؟',
+        message: 'هل تريد ضبط تذكير وهدف قراءة لـ «${book.title}» الآن؟',
         confirmLabel: 'إضافة تذكير',
         cancelLabel: 'لاحقاً',
       );
@@ -223,9 +226,7 @@ class HomeController extends GetxController {
   }
 
   Future<CategoryModel?> _createCategoryFlow() async {
-    final draft = await Get.dialog<CategoryDraft>(
-      const CreateCategoryDialog(),
-    );
+    final draft = await Get.dialog<CategoryDraft>(const CreateCategoryDialog());
     if (draft == null) return null;
 
     final created = await _categoryRepo.create(

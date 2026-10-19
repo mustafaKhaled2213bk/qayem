@@ -12,17 +12,17 @@ import '../../../core/widgets/daily_goal_card.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/glass_container.dart';
 import '../../../core/widgets/loading_state.dart';
+import '../../../core/widgets/reading_streak_card.dart';
 import '../../../core/widgets/section_header.dart';
 import '../controllers/home_controller.dart';
+
 class CustomFabLocation extends FloatingActionButtonLocation {
   @override
   Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
-    return Offset(
-      10.w,
-      scaffoldGeometry.scaffoldSize.height - 140.h,
-    );
+    return Offset(10.w, scaffoldGeometry.scaffoldSize.height - 140.h);
   }
 }
+
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
 
@@ -72,8 +72,7 @@ class HomeView extends GetView<HomeController> {
                                 book: book,
                                 onTap: () => controller.openBook(book),
                                 onShare: () => controller.shareBook(book),
-                                onReminder: () =>
-                                    controller.openReminder(book),
+                                onReminder: () => controller.openReminder(book),
                               );
                             },
                           ),
@@ -101,14 +100,29 @@ class HomeView extends GetView<HomeController> {
                       delegate: SliverChildListDelegate([
                         Padding(
                           padding: EdgeInsets.fromLTRB(16.w, 4.h, 16.w, 8.h),
-                          child: DailyGoalCard(
-                            title: controller.goalTitle.value,
-                            goalMinutes: controller.goalMinutes.value,
-                            todaySeconds: controller.todayReadingSeconds.value,
-                            footnote: controller.goalFootnote.value,
-                            enabledCount:
-                                controller.enabledRemindersCount.value,
-                            onTap: controller.openGoalsSettings,
+                          child: IntrinsicHeight(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Expanded(
+                                  child: DailyGoalCard(
+                                    title: controller.goalTitle.value,
+                                    goalMinutes: controller.goalMinutes.value,
+                                    todaySeconds:
+                                        controller.todayReadingSeconds.value,
+                                    footnote: controller.goalFootnote.value,
+                                    enabledCount:
+                                        controller.enabledRemindersCount.value,
+                                    onTap: controller.openGoalsSettings,
+                                  ),
+                                ),
+                                SizedBox(width: 8.w),
+                                ReadingStreakCard(
+                                  days: controller.streakDays.value,
+                                  readToday: controller.streakReadToday.value,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         if (controller.lastOpenedBook != null)
@@ -139,8 +153,7 @@ class HomeView extends GetView<HomeController> {
                                 onTap: () => controller.openBook(book),
                                 onContinue: () => controller.openBook(book),
                                 onShare: () => controller.shareBook(book),
-                                onReminder: () =>
-                                    controller.openReminder(book),
+                                onReminder: () => controller.openReminder(book),
                               ),
                             ),
                           ),
@@ -153,11 +166,11 @@ class HomeView extends GetView<HomeController> {
                             itemCount: controller.featuredCategories.length,
                             gridDelegate:
                                 SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              mainAxisSpacing: 12.h,
-                              crossAxisSpacing: 12.w,
-                              childAspectRatio: 1.15,
-                            ),
+                                  crossAxisCount: 2,
+                                  mainAxisSpacing: 12.h,
+                                  crossAxisSpacing: 12.w,
+                                  childAspectRatio: 1.15,
+                                ),
                             itemBuilder: (context, index) {
                               final category =
                                   controller.featuredCategories[index];
@@ -209,9 +222,7 @@ class _Header extends StatelessWidget {
                     Text(
                       'قيّم',
                       style: AppTextStyles.headline.copyWith(
-                        color: isDark
-                            ? AppColors.secondary
-                            : AppColors.primary,
+                        color: isDark ? AppColors.secondary : AppColors.primary,
                       ),
                     ),
                   ],

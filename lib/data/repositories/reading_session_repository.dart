@@ -97,6 +97,52 @@ class ReadingSessionRepository {
     return _sumDuration(start: start, end: end, bookIds: bookIds);
   }
 
+  /// Consecutive local days that contain a finished reading session.
+  /// Today still counts as part of the streak until the day ends, even if
+  /// the user has not read yet.
+  Future<ReadingStreak> currentStreak() async {
+    try {
+      final db = await _db;
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final lookback = today.subtract(const Duration(days: 400));
+      final rows = await db.rawQuery(
+        '''
+SELECT start_time
+FROM ${DatabaseTables.readingSessions}
+WHERE duration > 0 AND start_time >= ?
+''',
+        [lookback.toIso8601String()],
+      );
+
+      final days = <String>{};
+      for (final row in rows) {
+        final parsed = DateTime.tryParse(row['start_time'] as String? ?? '');
+        if (parsed == null) continue;
+        final local = parsed.toLocal();
+        days.add(_dayKey(DateTime(local.year, local.month, local.day)));
+      }
+
+      final readToday = days.contains(_dayKey(today));
+      var cursor = readToday ? today : today.subtract(const Duration(days: 1));
+      var count = 0;
+      while (days.contains(_dayKey(cursor))) {
+        count++;
+        cursor = cursor.subtract(const Duration(days: 1));
+      }
+
+      return ReadingStreak(days: count, readToday: readToday);
+    } catch (e) {
+      throw AppDatabaseException('تعذّر حساب سلسلة القراءة.', cause: e);
+    }
+  }
+
+  static String _dayKey(DateTime day) {
+    final m = day.month.toString().padLeft(2, '0');
+    final d = day.day.toString().padLeft(2, '0');
+    return '${day.year}-$m-$d';
+  }
+
   static DateTime startOfWeek(DateTime date) {
     final day = DateTime(date.year, date.month, date.day);
     final daysFromSaturday = (day.weekday + 1) % 7;
@@ -111,13 +157,8 @@ class ReadingSessionRepository {
   }) async {
     try {
       final db = await _db;
-      final where = StringBuffer(
-        'start_time >= ? AND start_time < ?',
-      );
-      final args = <Object?>[
-        start.toIso8601String(),
-        end.toIso8601String(),
-      ];
+      final where = StringBuffer('start_time >= ? AND start_time < ?');
+      final args = <Object?>[start.toIso8601String(), end.toIso8601String()];
 
       if (bookId != null) {
         where.write(' AND book_id = ?');
@@ -128,17 +169,21 @@ class ReadingSessionRepository {
         args.addAll(bookIds);
       }
 
-      final result = await db.rawQuery(
-        '''
+      final result = await db.rawQuery('''
 SELECT COALESCE(SUM(duration), 0) AS total
 FROM ${DatabaseTables.readingSessions}
 WHERE $where
-''',
-        args,
-      );
+''', args);
       return (result.first['total'] as num?)?.toInt() ?? 0;
     } catch (e) {
       throw AppDatabaseException('تعذّر تحميل تقدم القراءة.', cause: e);
     }
   }
+}
+
+class ReadingStreak {
+  const ReadingStreak({required this.days, required this.readToday});
+
+  final int days;
+  final bool readToday;
 }
